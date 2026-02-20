@@ -1,0 +1,63 @@
+# Monitro Configuration File
+# Copy this to monitro.yaml and fill in your credentials
+# monitro.yaml is .gitignored — never commit secrets
+
+server:
+  host: 127.0.0.1
+  port: 8443
+  cert: certs/server.crt
+  key: certs/server.key
+  # Set to true after trusting the local CA in your OS keychain
+  require_client_ca: false
+
+database:
+  host: 127.0.0.1
+  port: 3306
+  name: monitro
+  user: monitro_user
+  password: ""            # Set to your MariaDB password
+
+collector:
+  interval_seconds: 5     # How often to poll system metrics
+  retention_days: 30      # How many days of metric history to keep
+  enable_process_monitor: true
+  enable_user_sessions: true
+  enable_api_monitor: true  # Track outbound HTTP calls per process
+
+alerts:
+  # System load (1-minute average)
+  load_avg_enabled: true
+  load_avg_threshold: 5.0
+  load_avg_script: ""      # Optional: path to alert script
+
+  # CPU utilization (percent)
+  cpu_enabled: true
+  cpu_threshold: 90.0
+
+  # Memory utilization (percent)
+  mem_enabled: true
+  mem_threshold: 90.0
+
+  # Disk usage (percent per mount)
+  disk_enabled: true
+  disk_threshold: 85.0
+
+  # Minimum interval between repeated alerts (seconds)
+  min_interval_seconds: 300
+
+monitored_ports:
+  - port: 22
+    name: SSH
+    protocol: tcp
+  - port: 80
+    name: HTTP
+    protocol: tcp
+  - port: 443
+    name: HTTPS
+    protocol: tcp
+  - port: 3306
+    name: MySQL/MariaDB
+    protocol: tcp
+  - port: 8443
+    name: Monitro
+    protocol: tcp

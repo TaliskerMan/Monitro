@@ -1,0 +1,36 @@
+name: monitro_collector
+description: Monitro backend collector daemon — gathers system metrics and serves them via HTTPS REST API
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  # HTTP server
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+
+  # MariaDB / MySQL client
+  mysql_client: ^0.0.27
+
+  # YAML config parsing
+  yaml: ^3.1.2
+
+  # Logging
+  logging: ^1.2.0
+
+  # Argument parsing
+  args: ^2.4.2
+
+  # Path utilities
+  path: ^1.9.0
+
+  # JSON
+  json_annotation: ^4.8.1
+
+dev_dependencies:
+  lints: ^3.0.0
+  test: ^1.25.0
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1

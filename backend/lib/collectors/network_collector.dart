@@ -1,0 +1,82 @@
+// Network Interface Collector — cross-platform
+import 'dart:io';
+
+class NetworkCollector {
+  static Future<Map<String, dynamic>> collect() async {
+    if (Platform.isLinux) return _collectLinux();
+    if (Platform.isMacOS) return _collectMacOS();
+    if (Platform.isWindows) return _collectWindows();
+    return {'error': 'Unsupported platform'};
+  }
+
+  static Future<Map<String, dynamic>> _collectLinux() async {
+    try {
+      final content = await File('/proc/net/dev').readAsString();
+      final lines = content.split('\n').skip(2); // skip header lines
+      final interfaces = <Map<String, dynamic>>[];
+      for (final line in lines) {
+        final colon = line.indexOf(':');
+        if (colon < 0) continue;
+        final iface = line.substring(0, colon).trim();
+        final parts = line.substring(colon + 1).trim().split(RegExp(r'\s+'));
+        if (parts.length < 16) continue;
+        interfaces.add({
+          'interface':   iface,
+          'rx_bytes':    int.tryParse(parts[0]) ?? 0,
+          'rx_packets':  int.tryParse(parts[1]) ?? 0,
+          'rx_errors':   int.tryParse(parts[2]) ?? 0,
+          'rx_dropped':  int.tryParse(parts[3]) ?? 0,
+          'tx_bytes':    int.tryParse(parts[8]) ?? 0,
+          'tx_packets':  int.tryParse(parts[9]) ?? 0,
+          'tx_errors':   int.tryParse(parts[10]) ?? 0,
+          'tx_dropped':  int.tryParse(parts[11]) ?? 0,
+        });
+      }
+      return {'platform': 'linux', 'interfaces': interfaces};
+    } catch (e) {
+      return {'error': e.toString()};
+    }
+  }
+
+  static Future<Map<String, dynamic>> _collectMacOS() async {
+    try {
+      final result = await Process.run(
+        'netstat', ['-I', 'en0', '-b', '-n'], runInShell: true,
+      );
+      // We get per-interface stats — for all, use `netstat -ib`
+      final allResult = await Process.run('netstat', ['-ib'], runInShell: true);
+      final lines = allResult.stdout.toString().split('\n');
+      final interfaces = <Map<String, dynamic>>[];
+      for (int i = 1; i < lines.length; i++) {
+        final parts = lines[i].trim().split(RegExp(r'\s+'));
+        if (parts.length < 10) continue;
+        interfaces.add({
+          'interface':  parts[0],
+          'rx_packets': int.tryParse(parts[4]) ?? 0,
+          'rx_errors':  int.tryParse(parts[5]) ?? 0,
+          'rx_bytes':   int.tryParse(parts[6]) ?? 0,
+          'tx_packets': int.tryParse(parts[7]) ?? 0,
+          'tx_errors':  int.tryParse(parts[8]) ?? 0,
+          'tx_bytes':   int.tryParse(parts[9]) ?? 0,
+        });
+      }
+      return {'platform': 'macos', 'interfaces': interfaces};
+    } catch (e) {
+      return {'error': e.toString()};
+    }
+  }
+
+  static Future<Map<String, dynamic>> _collectWindows() async {
+    try {
+      final result = await Process.run(
+        'powershell', [
+          '-NonInteractive', '-Command',
+          'Get-NetAdapterStatistics | Select-Object Name, ReceivedBytes, SentBytes | ConvertTo-Json',
+        ],
+      );
+      return {'platform': 'windows', 'raw': result.stdout.toString()};
+    } catch (e) {
+      return {'error': e.toString()};
+    }
+  }
+}

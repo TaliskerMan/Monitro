@@ -1,0 +1,49 @@
+# Flutter / Dart
+*.dart_tool/
+.dart_tool/
+.packages
+pubspec.lock
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+doc/api/
+*.js.map
+
+# Dart compiled binaries
+backend/bin/monitro_collector
+backend/bin/monitro_collector.exe
+
+# macOS
+.DS_Store
+*.dSYM
+DerivedData/
+*.xcworkspace/
+ios/
+android/
+web/
+
+# SSL Certificates & Keys — NEVER commit private keys
+certs/*.key
+certs/*.csr
+certs/*.srl
+
+# Config with secrets
+config/monitro.yaml
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# MariaDB data
+data/
+
+# Build artifacts
+*.aab
+*.apk

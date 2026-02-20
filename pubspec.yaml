@@ -1,0 +1,57 @@
+name: monitro
+description: "Cross-platform local system observability platform — Flutter UI with Dart backend, MariaDB storage, and 4096-bit SSL."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP & REST API client
+  http: ^1.2.0
+  dio: ^5.4.0
+
+  # Charts and data visualization
+  fl_chart: ^0.68.0
+
+  # State management
+  flutter_riverpod: ^2.4.0
+  riverpod_annotation: ^2.3.0
+
+  # YAML configuration parsing
+  yaml: ^3.1.2
+
+  # Routing
+  go_router: ^13.0.0
+
+  # UI utilities
+  intl: ^0.19.0
+  timeago: ^3.6.1
+  shimmer: ^3.0.0
+  lottie: ^3.0.0
+
+  # Data persistence (local preferences only — main data is in MariaDB)
+  shared_preferences: ^2.2.2
+
+  # Icons
+  cupertino_icons: ^1.0.6
+  material_symbols_icons: ^4.2719.3
+
+  # System info (supplements platform-specific collectors)
+  system_info2: ^4.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.7
+  riverpod_generator: ^2.3.5
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/animations/
