@@ -21,8 +21,9 @@ fi
 
 # Ensure backend dependencies are installed
 echo "--> Getting backend dependencies..."
+echo "--> Getting backend dependencies..."
 cd "$BACKEND_DIR"
-dart pub get --quiet
+dart pub get
 
 echo "--> Starting collector (config: $CONFIG)..."
 exec dart run bin/monitro_collector.dart --config "$CONFIG"

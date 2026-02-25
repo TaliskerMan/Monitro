@@ -1,0 +1,72 @@
+name: Build Release Packages
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - uses: dart-lang/setup-dart@v1
+      - name: Enable Linux Desktop
+        run: flutter config --enable-linux-desktop
+      - name: Build DEB Package
+        run: |
+          chmod +x scripts/package_linux.sh
+          ./scripts/package_linux.sh
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Monitro_Linux_DEB
+          path: build/linux/deb/*.deb
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - uses: dart-lang/setup-dart@v1
+      - name: Enable macOS Desktop
+        run: flutter config --enable-macos-desktop
+      - name: Install create-dmg
+        run: brew install create-dmg
+      - name: Build DMG Package
+        run: |
+          chmod +x scripts/package_macos.sh
+          ./scripts/package_macos.sh
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Monitro_macOS_DMG
+          path: Monitro_*_macOS.dmg
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - uses: dart-lang/setup-dart@v1
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+      - name: Build EXE Installer
+        run: .\scripts\package_windows.ps1
+        shell: powershell
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Monitro_Windows_Setup
+          path: Output/Monitro_*_Windows_Setup.exe

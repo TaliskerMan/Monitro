@@ -94,6 +94,13 @@ class CpuCollector {
         runInShell: true,
       );
       final coreCount = int.tryParse(sysctlResult.stdout.toString().trim()) ?? 1;
+      
+      // macOS does not expose per-core load without root privileges (powermetrics)
+      // We simulate the output structure using the aggregate load so the UI visualizer works.
+      final cores = List.generate(coreCount, (i) => {
+        'core': 'cpu$i',
+        'busy_pct': user + sys, 
+      });
 
       return {
         'platform':    'macos',
@@ -102,6 +109,7 @@ class CpuCollector {
         'idle_pct':    idle,
         'busy_pct':    user + sys,
         'logical_cores': coreCount,
+        'cores': cores,
       };
     } catch (e) {
       return {'error': e.toString()};

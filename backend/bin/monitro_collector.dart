@@ -78,6 +78,11 @@ Future<void> main(List<String> args) async {
 
   final configContent = configFile.readAsStringSync();
   final config = loadYaml(configContent) as YamlMap;
+  // configDir is the config file's directory (e.g. /Monitro/config).
+  // Cert paths in monitro.yaml are relative to the repo root (e.g. certs/server.crt),
+  // so we go one level up to get the repo root.
+  final configFileDir = configFile.absolute.parent.path;
+  final configDir = File(configFileDir).parent.path; // repo root
 
   // ---------------------------------------------------------------------------
   // Connect to MariaDB
@@ -107,6 +112,7 @@ Future<void> main(List<String> args) async {
   final serverConfig = config['server'] as YamlMap;
   final apiServer = MonitroApiServer(
     config: serverConfig,
+    configDir: configDir,
     dbService: dbService,
     collectorManager: manager,
   );

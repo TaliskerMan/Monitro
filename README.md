@@ -1,6 +1,6 @@
 # Monitro
 
-**Monitro** is a cross-platform local system observability platform — inspired by [Monitorix](https://www.monitorix.org), built from the ground up with modern technologies.
+**Monitro** is a cross-platform local system observability platform — inspired by [Monitorix](https://www.monitorix.org), built from the ground up with modern technologies. It is proudly part of the **Nordheim Online** portfolio of applications.
 
 | Layer | Technology |
 |---|---|
@@ -103,4 +103,7 @@ Monitro/
 
 ## License
 
-MIT © 2026 Charles Talk / TaliskerMan
+This project is licensed under the [MIT License](./LICENSE).
+
+© 2026 Chuck Talk <chuck@nordheim.online>.
+Free for Linux workstations. Official compiled binaries for macOS and Windows are available for purchase, supporting the ongoing development of the project.

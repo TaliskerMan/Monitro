@@ -1,7 +1,7 @@
 name: monitro_collector
 description: Monitro backend collector daemon — gathers system metrics and serves them via HTTPS REST API
 publish_to: none
-version: 0.1.0
+version: 1.2.0
 
 environment:
   sdk: '>=3.2.0 <4.0.0'

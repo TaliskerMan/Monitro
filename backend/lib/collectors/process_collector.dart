@@ -48,13 +48,18 @@ class ProcessCollector {
     int count = 0;
     for (final line in output.split('\n')) {
       if (line.trim().isEmpty) continue;
-      if (count++ >= _topN) break;
 
       final parts = line.trim().split(RegExp(r'\s+'));
       if (parts.length < 8) continue;
 
+      // Skip header row (PID is not a number)
+      final pid = int.tryParse(parts[0]);
+      if (pid == null) continue;
+
+      if (count++ >= _topN) break;
+
       processes.add({
-        'pid':      int.tryParse(parts[0]),
+        'pid':      pid,
         'ppid':     int.tryParse(parts[1]),
         'user':     parts[2],
         'cpu_pct':  double.tryParse(parts[3]) ?? 0.0,

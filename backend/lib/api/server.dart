@@ -16,12 +16,14 @@ final _log = Logger('MonitroApiServer');
 
 class MonitroApiServer {
   final YamlMap config;
+  final String configDir;   // Directory of monitro.yaml — used to resolve relative paths
   final MariaDbService dbService;
   final CollectorManager collectorManager;
   HttpServer? _server;
 
   MonitroApiServer({
     required this.config,
+    required this.configDir,
     required this.dbService,
     required this.collectorManager,
   });
@@ -29,14 +31,18 @@ class MonitroApiServer {
   Future<void> start() async {
     final host = config['host'] as String? ?? '127.0.0.1';
     final port = config['port'] as int? ?? 8443;
-    final certPath = config['cert'] as String? ?? 'certs/server.crt';
-    final keyPath  = config['key']  as String? ?? 'certs/server.key';
+    final certRelPath = config['cert'] as String? ?? 'certs/server.crt';
+    final keyRelPath  = config['key']  as String? ?? 'certs/server.key';
+    // Resolve relative to config file's directory, so running from backend/ works correctly
+    final certPath = certRelPath.startsWith('/') ? certRelPath : '$configDir/$certRelPath';
+    final keyPath  = keyRelPath.startsWith('/')  ? keyRelPath  : '$configDir/$keyRelPath';
 
     final router = Router()
       ..get('/api/v1/health',              _handleHealth)
       ..get('/api/v1/metrics/current',     _handleCurrentMetrics)
       ..get('/api/v1/metrics/history',     _handleMetricHistory)
       ..get('/api/v1/processes',           _handleProcesses)
+      ..delete('/api/v1/processes/<pid>',  _handleKillProcess)
       ..get('/api/v1/connections',         _handleConnections)
       ..get('/api/v1/users',               _handleUsers)
       ..get('/api/v1/api-calls',           _handleApiCalls)
@@ -116,6 +122,24 @@ class MonitroApiServer {
     }
     final dbData = await dbService.queryTopProcesses(limit: limit);
     return _json({'processes': dbData, 'source': 'db'});
+  }
+
+  Future<Response> _handleKillProcess(Request request, String pidStr) async {
+    final pid = int.tryParse(pidStr);
+    if (pid == null) return Response.badRequest(body: 'Invalid PID');
+    
+    try {
+      if (Platform.isWindows) {
+        await Process.run('powershell', ['-Command', 'Stop-Process -Id $pid -Force']);
+      } else {
+        await Process.run('kill', ['-9', pid.toString()]);
+      }
+      _log.warning('Killed process $pid via API request');
+      return _json({'status': 'killed', 'pid': pid});
+    } catch (e) {
+      _log.severe('Failed to kill process $pid', e);
+      return Response.internalServerError(body: jsonEncode({'error': e.toString()}));
+    }
   }
 
   Response _handleConnections(Request request) {

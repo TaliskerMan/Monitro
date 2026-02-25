@@ -40,10 +40,7 @@ class NetworkCollector {
 
   static Future<Map<String, dynamic>> _collectMacOS() async {
     try {
-      final result = await Process.run(
-        'netstat', ['-I', 'en0', '-b', '-n'], runInShell: true,
-      );
-      // We get per-interface stats — for all, use `netstat -ib`
+      // Use `netstat -ib` to get stats for all interfaces
       final allResult = await Process.run('netstat', ['-ib'], runInShell: true);
       final lines = allResult.stdout.toString().split('\n');
       final interfaces = <Map<String, dynamic>>[];

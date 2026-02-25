@@ -1,5 +1,6 @@
 // Monitro API Service — talks to the backend collector over localhost HTTPS
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -15,7 +16,7 @@ class ApiService {
         // Only allow self-signed certs from localhost / 127.0.0.1
         return host == '127.0.0.1' || host == 'localhost';
       };
-    return http.IOClient(ioClient);
+    return IOClient(ioClient);
   }
 
   static Future<Map<String, dynamic>> getCurrentMetrics() async {
@@ -35,6 +36,18 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getProcesses({int limit = 20}) async {
     return _get('/processes?limit=$limit');
+  }
+
+  static Future<Map<String, dynamic>> killProcess(int pid) async {
+    try {
+      final response = await _client.delete(Uri.parse('$_baseUrl/processes/$pid'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      return {'error': 'HTTP ${response.statusCode}'};
+    } catch (e) {
+      return {'error': e.toString()};
+    }
   }
 
   static Future<Map<String, dynamic>> getConnections() async {

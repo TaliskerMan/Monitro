@@ -5,12 +5,21 @@ import 'package:go_router/go_router.dart';
 
 import 'screens/dashboard.dart';
 import 'screens/screens.dart'; // processes, connections, users, api_monitor, alerts, settings
+import 'screens/cpu_cores_screen.dart';
 import 'theme/app_theme.dart';
+import 'services/preferences_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final sharedPrefs = await SharedPreferences.getInstance();
+
   runApp(
-    const ProviderScope(
-      child: MonitroApp(),
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPrefs),
+      ],
+      child: const MonitroApp(),
     ),
   );
 }
@@ -23,6 +32,7 @@ final _router = GoRouter(
       routes: [
         GoRoute(path: '/',           builder: (c, s) => const DashboardScreen()),
         GoRoute(path: '/processes',  builder: (c, s) => const ProcessesScreen()),
+        GoRoute(path: '/cpu-cores',  builder: (c, s) => const CpuCoresScreen()),
         GoRoute(path: '/connections', builder: (c, s) => const ConnectionsScreen()),
         GoRoute(path: '/users',      builder: (c, s) => const UsersScreen()),
         GoRoute(path: '/api-calls',  builder: (c, s) => const ApiMonitorScreen()),
@@ -92,6 +102,11 @@ class AppShell extends StatelessWidget {
                 label: Text('Processes'),
               ),
               NavigationRailDestination(
+                icon: Icon(Icons.bar_chart_outlined),
+                selectedIcon: Icon(Icons.bar_chart),
+                label: Text('CPU Cores'),
+              ),
+              NavigationRailDestination(
                 icon: Icon(Icons.cable_outlined),
                 selectedIcon: Icon(Icons.cable),
                 label: Text('Connections'),
@@ -126,13 +141,13 @@ class AppShell extends StatelessWidget {
   }
 
   int _navIndex(String location) {
-    const routes = ['/', '/processes', '/connections', '/users', '/api-calls', '/alerts', '/settings'];
+    const routes = ['/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts', '/settings'];
     final i = routes.indexOf(location);
     return i < 0 ? 0 : i;
   }
 
   void _navigate(BuildContext context, int index) {
-    const routes = ['/', '/processes', '/connections', '/users', '/api-calls', '/alerts', '/settings'];
+    const routes = ['/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts', '/settings'];
     context.go(routes[index]);
   }
 }
