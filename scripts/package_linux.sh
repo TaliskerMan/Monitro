@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-VERSION="1.2.0"
+VERSION="1.2.4"
 ARCH="amd64"
 DEBFULLNAME="Chuck Talk"
 DEBEMAIL="chuck@nordheim.online"
@@ -78,7 +78,7 @@ exec /opt/monitro/monitro "$@"
 EOF
 chmod +x "${BUILD_DIR}/usr/bin/monitro"
 
-cat <<EOF > "${BUILD_DIR}/usr/share/applications/monitro.desktop"
+cat <<EOF > "${BUILD_DIR}/usr/share/applications/online.nordheim.monitro.desktop"
 [Desktop Entry]
 Name=Monitro
 Exec=/opt/monitro/monitro
