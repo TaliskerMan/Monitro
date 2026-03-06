@@ -11,6 +11,10 @@ class CpuCollector {
     return {'error': 'Unsupported platform: ${Platform.operatingSystem}'};
   }
 
+  // Hold previous cycles' core & system metrics to compute usage deltas
+  static final Map<String, int> _prevTotal = {};
+  static final Map<String, int> _prevBusy = {};
+
   // -------------------------------------------------------------------------
   // Linux: parse /proc/stat
   // -------------------------------------------------------------------------
@@ -50,25 +54,45 @@ class CpuCollector {
           'steal':   steal,
           'total':   total,
           'busy':    busyTime,
-          // Percent values require two samples to compute (delta). 
-          // The MariaDB service uses the delta between successive readings.
         });
+
+        // Compute percent if we have prev data for this core name
+        if (_prevTotal.containsKey(name) && _prevBusy.containsKey(name)) {
+          final pTotal = _prevTotal[name]!;
+          final pBusy = _prevBusy[name]!;
+          final deltaTotal = total - pTotal;
+          final deltaBusy = busyTime - pBusy;
+          
+          if (deltaTotal > 0) {
+            coreStats.last['busy_pct'] = (deltaBusy / deltaTotal) * 100.0;
+          } else {
+            coreStats.last['busy_pct'] = 0.0;
+          }
+        }
+        
+        _prevTotal[name] = total;
+        _prevBusy[name] = busyTime;
       }
       
+      num sysBusyPct = 0.0;
       num sysTotal = 0;
       num sysBusy = 0;
       for (var core in coreStats) {
         if (core['core'] != 'cpu') continue; 
         sysTotal = core['total'] as num;
         sysBusy = core['busy'] as num;
+        if (core.containsKey('busy_pct')) {
+          sysBusyPct = core['busy_pct'] as num;
+        }
         break;
       }
 
-      // If 'cpu' total line exists, busy_pct will be calculated as a delta by mariadb,
-      // but the API consumer just looks for busy_pct. The MariaDb expects `busy` and `total` at root level.
+      // If 'cpu' total line exists, busy_pct will be calculated as a delta
       return {
         'platform': 'linux', 
-        'cores': coreStats,
+        'cores': coreStats.where((c) => c['core'] != 'cpu').toList(),
+        'busy_pct': sysBusyPct,
+        'idle_pct': 100.0 - sysBusyPct,
         'busy': sysBusy,
         'total': sysTotal,
       };

@@ -43,10 +43,18 @@ class MariaDbService {
   // ---------------------------------------------------------------------------
   Future<void> runMigrations() async {
     _log.info('Running schema migrations...');
-    // Resolve migrations directory relative to the script (development mode)
-    final scriptUri = Platform.script;
-    final repoRoot = File(scriptUri.toFilePath()).parent.parent.parent.path;
-    final migrationsDir = Directory('$repoRoot/db/migrations');
+    // Resolve migrations directory relative to the executable (production) or script (development)
+    Directory migrationsDir;
+    
+    final exeLoc = Platform.resolvedExecutable;
+    if (exeLoc.endsWith('monitro_collector') || exeLoc.endsWith('monitro_collector.exe')) {
+      final appDir = File(exeLoc).parent.parent.path;
+      migrationsDir = Directory('$appDir/db/migrations');
+    } else {
+      final scriptUri = Platform.script;
+      final repoRoot = File(scriptUri.toFilePath()).parent.parent.parent.path;
+      migrationsDir = Directory('$repoRoot/db/migrations');
+    }
 
     if (!migrationsDir.existsSync()) {
       _log.warning('Migrations directory not found: ${migrationsDir.path}');

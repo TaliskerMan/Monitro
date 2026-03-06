@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-VERSION="1.2.6"
+VERSION="1.2.7"
 ARCH="amd64"
 DEBFULLNAME="Chuck Talk"
 DEBEMAIL="chuck@nordheim.online"
@@ -38,6 +38,7 @@ EOF
 # Copy binaries
 cp -r build/linux/x64/release/bundle/* "${BUILD_DIR}/opt/monitro/"
 cp backend/monitro_collector "${BUILD_DIR}/opt/monitro/backend/"
+cp -r db "${BUILD_DIR}/opt/monitro/"
 cp data/monitro.png "${BUILD_DIR}/usr/share/pixmaps/"
 
 # Postinst (to setup systemd service for collector)
