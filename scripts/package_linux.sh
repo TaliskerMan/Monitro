@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-VERSION="1.2.5"
+VERSION="1.2.6"
 ARCH="amd64"
 DEBFULLNAME="Chuck Talk"
 DEBEMAIL="chuck@nordheim.online"
@@ -20,6 +20,7 @@ cd ..
 mkdir -p "${BUILD_DIR}/DEBIAN"
 mkdir -p "${BUILD_DIR}/usr/bin"
 mkdir -p "${BUILD_DIR}/usr/share/applications"
+mkdir -p "${BUILD_DIR}/usr/share/pixmaps"
 mkdir -p "${BUILD_DIR}/opt/monitro/backend"
 
 # Control file
@@ -37,6 +38,7 @@ EOF
 # Copy binaries
 cp -r build/linux/x64/release/bundle/* "${BUILD_DIR}/opt/monitro/"
 cp backend/monitro_collector "${BUILD_DIR}/opt/monitro/backend/"
+cp data/monitro.png "${BUILD_DIR}/usr/share/pixmaps/"
 
 # Postinst (to setup systemd service for collector)
 cat <<'EOF' > "${BUILD_DIR}/DEBIAN/postinst"

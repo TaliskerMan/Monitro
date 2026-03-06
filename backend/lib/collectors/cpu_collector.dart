@@ -54,8 +54,24 @@ class CpuCollector {
           // The MariaDB service uses the delta between successive readings.
         });
       }
+      
+      num sysTotal = 0;
+      num sysBusy = 0;
+      for (var core in coreStats) {
+        if (core['core'] != 'cpu') continue; 
+        sysTotal = core['total'] as num;
+        sysBusy = core['busy'] as num;
+        break;
+      }
 
-      return {'platform': 'linux', 'cores': coreStats};
+      // If 'cpu' total line exists, busy_pct will be calculated as a delta by mariadb,
+      // but the API consumer just looks for busy_pct. The MariaDb expects `busy` and `total` at root level.
+      return {
+        'platform': 'linux', 
+        'cores': coreStats,
+        'busy': sysBusy,
+        'total': sysTotal,
+      };
     } catch (e) {
       return {'error': e.toString()};
     }
