@@ -1,14 +1,22 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart';
+import 'api_service.dart';
 
 class BackendService {
   static Process? _process;
 
   static Future<bool> start(String configPath) async {
-    await _killExistingProcess();
-    if (_process != null) return true; // Already running
+    if (_process != null) return true; // Already running locally mapped by Flutter
+    
+    // Check if another backend instance is already listening
+    if (await ApiService.isBackendHealthy()) {
+      debugPrint('Backend is already running and healthy.');
+      return true;
+    }
 
+    await _killExistingProcess();
+    
     String exePath = _getCollectorPath();
 
     if (!File(exePath).existsSync()) {
