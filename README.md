@@ -38,6 +38,8 @@ brew install mariadb
 brew services start mariadb
 ```
 
+> For complete instructions on installation, setup, and troubleshooting on macOS, please consult the [macOS Setup Guide](docs/macOS_Setup_Guide.md).
+
 ### Linux
 
 ```bash

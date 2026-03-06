@@ -1,3 +1,7 @@
+Write-Host "Incrementing build number..."
+$env:VERSION = .\scripts\increment_build.ps1
+Write-Host "Building version: $env:VERSION"
+
 Write-Host "Building Flutter UI for Windows..."
 flutter build windows --release
 

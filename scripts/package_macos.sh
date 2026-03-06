@@ -8,6 +8,11 @@ if ! command -v create-dmg &> /dev/null; then
     exit 1
 fi
 
+echo "Incrementing build number..."
+chmod +x scripts/increment_build.sh
+VERSION=$(./scripts/increment_build.sh)
+echo "Building version: $VERSION"
+
 echo "Building Flutter UI for macOS..."
 flutter build macos --release
 
@@ -22,6 +27,10 @@ APP_BUNDLE="build/macos/Build/Products/Release/monitro.app"
 # Embed the collector inside the app bundle
 mkdir -p "${APP_BUNDLE}/Contents/Resources/backend"
 cp backend/monitro_collector "${APP_BUNDLE}/Contents/Resources/backend/"
+
+# Embed SSL certificates inside the app bundle
+mkdir -p "${APP_BUNDLE}/Contents/Resources/certs"
+cp certs/* "${APP_BUNDLE}/Contents/Resources/certs/"
 
 # Make DMG
 DMG_NAME="Monitro_${VERSION}_macOS.dmg"

@@ -13,6 +13,7 @@ ArchitecturesInstallIn64BitMode=x64
 [Files]
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\backend\monitro_collector.exe"; DestDir: "{app}\backend"; Flags: ignoreversion
+Source: "..\certs\*"; DestDir: "{app}\certs"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Monitro"; Filename: "{app}\monitro.exe"

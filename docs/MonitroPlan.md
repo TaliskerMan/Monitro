@@ -2,7 +2,7 @@
 
 ## 1. Product Objective
 
-Distribute Monitro as a self-contained, high-performance system observability platform targeting macOS and Linux ecosystems.
+Distribute Monitro as a self-contained, high-performance system observability platform targeting macOS, Linux, and Windows ecosystems.
 
 ## 2. Platform Architecture
 
@@ -14,11 +14,11 @@ Monitro operates using three core components:
 
 ## 3. Mono-Repository Paradigm
 
-A principal objective is maintaining code unity. We will utilize **a single repository for both macOS and Linux**. The application will adapt to OS specifications at compilation and packaging time, minimizing code drift between versions.
+A principal objective is maintaining code unity. We will utilize **a single repository for macOS, Linux, and Windows**. The application will adapt to OS specifications at compilation and packaging time, minimizing code drift between versions.
 
 ## 4. Environment Delivery Model
 
 The primary constraint is MariaDB, an external database service needing system installation. Each OS handles native background services differently, which sets our packaging requirements:
 
 - **Linux Philosophy**: *System-Managed.* Utilize `.deb` (Debian Packages) where dependencies like `mariadb-server` are explicitly passed to the host OS package manager (`apt`). Linux resolves side-loaded application prerequisites securely and natively.
-- **macOS Philosophy**: *Application-Managed.* Utilize standard Apple Disk Image (`.dmg`) formats. Since macOS drag-and-drop mechanics cannot natively pull, install, and instantiate an external database runtime organically, the Monitro Application itself acts as the runtime bootstrap. Upon launch, it asserts system requirements and provides a one-click onboarding screen to orchestrate MariaDB's installation via Homebrew.
+- **macOS & Windows Philosophy**: *Application-Managed.* Utilize standard Apple Disk Image (`.dmg`) formats and Windows Executables (`.exe` via InnoSetup). Since macOS and Windows mechanics cannot natively pull, install, and instantiate an external database runtime organically without significant friction, the Monitro Application itself acts as the runtime bootstrap. Upon launch, it asserts system requirements and provides a **Setup UI** to capture MariaDB credentials. It dynamically authors a backend configuration and spins up the background daemon seamlessly using system-level process management mechanisms.
