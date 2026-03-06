@@ -3,57 +3,74 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'screens/setup_screen.dart';
 import 'screens/dashboard.dart';
 import 'screens/screens.dart'; // processes, connections, users, api_monitor, alerts, settings
 import 'screens/cpu_cores_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/preferences_service.dart';
+import 'services/backend_service.dart';
+import 'services/config_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final sharedPrefs = await SharedPreferences.getInstance();
 
+  // If already configured, start backend before runApp
+  final dbUser = sharedPrefs.getString('mariadbUser');
+  if (dbUser != null) {
+    // Generate config logic manually without Riverpod
+    final settings = SettingsController(sharedPrefs).state;
+    final configPath = await ConfigGenerator.generateConfig(settings);
+    await BackendService.start(configPath);
+  }
+
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPrefs),
       ],
-      child: const MonitroApp(),
+      child: MonitroApp(hasConfig: dbUser != null),
     ),
   );
 }
 
-final _router = GoRouter(
-  initialLocation: '/',
-  routes: [
-    ShellRoute(
-      builder: (context, state, child) => AppShell(child: child),
-      routes: [
-        GoRoute(path: '/',           builder: (c, s) => const DashboardScreen()),
-        GoRoute(path: '/processes',  builder: (c, s) => const ProcessesScreen()),
-        GoRoute(path: '/cpu-cores',  builder: (c, s) => const CpuCoresScreen()),
-        GoRoute(path: '/connections', builder: (c, s) => const ConnectionsScreen()),
-        GoRoute(path: '/users',      builder: (c, s) => const UsersScreen()),
-        GoRoute(path: '/api-calls',  builder: (c, s) => const ApiMonitorScreen()),
-        GoRoute(path: '/alerts',     builder: (c, s) => const AlertsScreen()),
-        GoRoute(path: '/settings',   builder: (c, s) => const SettingsScreen()),
-      ],
-    ),
-  ],
-);
-
 class MonitroApp extends StatelessWidget {
-  const MonitroApp({super.key});
+  final bool hasConfig;
+  const MonitroApp({super.key, required this.hasConfig});
 
   @override
   Widget build(BuildContext context) {
+    final router = GoRouter(
+      initialLocation: hasConfig ? '/' : '/setup',
+      routes: [
+        GoRoute(
+          path: '/setup',
+          builder: (c, s) => const SetupScreen(),
+        ),
+        ShellRoute(
+          builder: (context, state, child) => AppShell(child: child),
+          routes: [
+            GoRoute(path: '/',           builder: (c, s) => const DashboardScreen()),
+            GoRoute(path: '/processes',  builder: (c, s) => const ProcessesScreen()),
+            GoRoute(path: '/cpu-cores',  builder: (c, s) => const CpuCoresScreen()),
+            GoRoute(path: '/connections', builder: (c, s) => const ConnectionsScreen()),
+            GoRoute(path: '/users',      builder: (c, s) => const UsersScreen()),
+            GoRoute(path: '/api-calls',  builder: (c, s) => const ApiMonitorScreen()),
+            GoRoute(path: '/alerts',     builder: (c, s) => const AlertsScreen()),
+            GoRoute(path: '/settings',   builder: (c, s) => const SettingsScreen()),
+          ],
+        ),
+      ],
+    );
+
     return MaterialApp.router(
       title: 'Monitro',
       theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
-      routerConfig: _router,
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
     );
   }

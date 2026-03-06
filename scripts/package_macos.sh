@@ -24,13 +24,22 @@ cd ..
 
 APP_BUNDLE="build/macos/Build/Products/Release/monitro.app"
 
-# Embed the collector inside the app bundle
-mkdir -p "${APP_BUNDLE}/Contents/Resources/backend"
-cp backend/monitro_collector "${APP_BUNDLE}/Contents/Resources/backend/"
+echo "Signing backend with sandbox inherit entitlements..."
+codesign --force --entitlements macos/Runner/Backend.entitlements --sign - backend/monitro_collector
+
+# Embed the collector inside the app bundle's MacOS directory (required by Sandbox)
+cp backend/monitro_collector "${APP_BUNDLE}/Contents/MacOS/monitro_collector"
 
 # Embed SSL certificates inside the app bundle
 mkdir -p "${APP_BUNDLE}/Contents/Resources/certs"
 cp certs/* "${APP_BUNDLE}/Contents/Resources/certs/"
+
+# Ensure embedded certs have read permissions
+chmod 644 "${APP_BUNDLE}/Contents/Resources/certs"/*
+
+# Ad-hoc sign the app bundle to repair its seal after injecting assets
+echo "Re-signing modified application bundle..."
+codesign --force --deep --sign - "${APP_BUNDLE}"
 
 # Make DMG
 DMG_NAME="Monitro_${VERSION}_macOS.dmg"

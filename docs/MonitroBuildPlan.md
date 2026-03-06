@@ -30,7 +30,7 @@ Follow the standard application bundle conventions with a guided runtime initial
    - `flutter build macos` for the native macOS User Interface.
    - `dart compile exe bin/monitro_collector.dart` for the background data collection daemon target to macOS architecture.
 2. **Bundle Engineering**:
-   - Embed the backend daemon executable into the frontend's `.app` wrapper inside `/Contents/Resources/backend`.
+   - Embed the backend daemon executable into the frontend's `.app` wrapper. **CRITICAL**: The daemon MUST reside in `/Contents/MacOS/` along with the primary UI executable. The macOS App Sandbox explicitly blocks execution of binaries located inside `/Contents/Resources/`.
    - Embed SSL `/certs` into `/Contents/Resources/certs`.
 3. **Image Packaging (`.dmg`)**:
    - Wrap the `.app` using a tool like `create-dmg`, providing the standard `Applications/` folder shortcut.
