@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../services/preferences_service.dart';
@@ -379,11 +380,24 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   List<String> _interfaces = ['All'];
+  String _version = 'Loading...';
 
   @override
   void initState() {
     super.initState();
     _loadInterfaces();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _version = '${info.version}+${info.buildNumber}';
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadInterfaces() async {

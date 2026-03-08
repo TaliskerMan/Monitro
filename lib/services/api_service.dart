@@ -19,6 +19,15 @@ class ApiService {
     return IOClient(ioClient);
   }
 
+  static Future<bool> isBackendHealthy() async {
+    try {
+      final response = await _client.get(Uri.parse('$_baseUrl/health'));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   static Future<Map<String, dynamic>> getCurrentMetrics() async {
     return _get('/metrics/current');
   }

@@ -40,6 +40,7 @@ cd ..
 mkdir -p "${BUILD_DIR}/DEBIAN"
 mkdir -p "${BUILD_DIR}/usr/bin"
 mkdir -p "${BUILD_DIR}/usr/share/applications"
+mkdir -p "${BUILD_DIR}/usr/share/pixmaps"
 mkdir -p "${BUILD_DIR}/opt/monitro/backend"
 
 # Control file
@@ -57,6 +58,8 @@ EOF
 # Copy binaries
 cp -r build/linux/x64/release/bundle/* "${BUILD_DIR}/opt/monitro/"
 cp backend/monitro_collector "${BUILD_DIR}/opt/monitro/backend/"
+cp -r db "${BUILD_DIR}/opt/monitro/"
+cp data/monitro.png "${BUILD_DIR}/usr/share/pixmaps/"
 
 # Install icon into hicolor theme (required for appgrid visibility)
 for SIZE in 48 64 128 256 512; do
@@ -174,7 +177,7 @@ exec /opt/monitro/monitro "$@"
 EOF
 chmod +x "${BUILD_DIR}/usr/bin/monitro"
 
-cat <<EOF > "${BUILD_DIR}/usr/share/applications/monitro.desktop"
+cat <<EOF > "${BUILD_DIR}/usr/share/applications/online.nordheim.monitro.desktop"
 [Desktop Entry]
 Name=Monitro
 Comment=Local System Observability Platform
