@@ -69,7 +69,7 @@ class ApiMonitor {
       if (!isHttpPort) continue;
 
       // Extract process name from ss output: users:(("curl",pid=1234,fd=5))
-      final m = RegExp(r'users:\("\(?"?(\w[\w.-]+)"?,').firstMatch(line);
+      final m = RegExp(r'users:\(\("?([^"]+)"?,').firstMatch(line);
       if (m != null) {
         final name = m.group(1)!;
         callers[name] = (callers[name] ?? 0) + 1;

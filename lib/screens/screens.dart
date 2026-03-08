@@ -461,7 +461,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
         const Divider(height: 32),
         _SectionHeader('About'),
-        _SettingTile(label: 'Version',      value: '1.2.0'),
+        _SettingTile(label: 'Version',      value: '1.2.11'),
         _SettingTile(label: 'License',      value: 'MIT (Chuck Talk)'),
         _SettingTile(label: 'Repository',   value: 'github.com/TaliskerMan/Monitro'),
         const SizedBox(height: 16),

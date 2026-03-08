@@ -4,6 +4,9 @@
 import 'dart:io';
 
 class CpuCollector {
+  static final Map<String, int> _lastTotal = {};
+  static final Map<String, int> _lastBusy = {};
+
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isLinux) return _collectLinux();
     if (Platform.isMacOS) return _collectMacOS();
@@ -19,10 +22,12 @@ class CpuCollector {
       final content = await File('/proc/stat').readAsString();
       final lines = content.split('\n');
       final coreStats = <Map<String, dynamic>>[];
+      double rootBusyPct = 0.0;
+      double rootIdlePct = 100.0;
 
       for (final line in lines) {
         if (!line.startsWith('cpu')) continue;
-        final parts = line.trim().split(RegExp(r'\s+'));
+        final parts = line.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
         if (parts.length < 8) continue;
 
         final name = parts[0]; // 'cpu', 'cpu0', 'cpu1', ...
@@ -38,24 +43,37 @@ class CpuCollector {
         final total = user + nice + system + idle + iowait + irq + softirq + steal;
         final busyTime = total - idle - iowait;
 
-        coreStats.add({
-          'core':    name,
-          'user':    user,
-          'nice':    nice,
-          'system':  system,
-          'idle':    idle,
-          'iowait':  iowait,
-          'irq':     irq,
-          'softirq': softirq,
-          'steal':   steal,
-          'total':   total,
-          'busy':    busyTime,
-          // Percent values require two samples to compute (delta). 
-          // The MariaDB service uses the delta between successive readings.
-        });
+        double busyPct = 0.0;
+        if (_lastTotal.containsKey(name)) {
+          final dTotal = total - _lastTotal[name]!;
+          final dBusy = busyTime - _lastBusy[name]!;
+          if (dTotal > 0) busyPct = (dBusy / dTotal) * 100.0;
+        }
+        _lastTotal[name] = total;
+        _lastBusy[name] = busyTime;
+
+        if (name == 'cpu') {
+          rootBusyPct = busyPct;
+          rootIdlePct = 100.0 - busyPct;
+        } else {
+          coreStats.add({
+            'core':    name,
+            'user':    user,
+            'nice':    nice,
+            'system':  system,
+            'idle':    idle,
+            'iowait':  iowait,
+            'irq':     irq,
+            'softirq': softirq,
+            'steal':   steal,
+            'total':   total,
+            'busy':    busyTime,
+            'busy_pct': busyPct,
+          });
+        }
       }
 
-      return {'platform': 'linux', 'cores': coreStats};
+      return {'platform': 'linux', 'busy_pct': rootBusyPct, 'idle_pct': rootIdlePct, 'cores': coreStats};
     } catch (e) {
       return {'error': e.toString()};
     }

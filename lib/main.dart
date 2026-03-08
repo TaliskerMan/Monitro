@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'screens/dashboard.dart';
 import 'screens/screens.dart'; // processes, connections, users, api_monitor, alerts, settings
 import 'screens/cpu_cores_screen.dart';
+import 'screens/service_control_screen.dart';
+import 'screens/about_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +39,9 @@ final _router = GoRouter(
         GoRoute(path: '/users',      builder: (c, s) => const UsersScreen()),
         GoRoute(path: '/api-calls',  builder: (c, s) => const ApiMonitorScreen()),
         GoRoute(path: '/alerts',     builder: (c, s) => const AlertsScreen()),
+        GoRoute(path: '/service-control', builder: (c, s) => const ServiceControlScreen()),
         GoRoute(path: '/settings',   builder: (c, s) => const SettingsScreen()),
+        GoRoute(path: '/about',      builder: (c, s) => const AboutScreen()),
       ],
     ),
   ],
@@ -79,8 +83,8 @@ class AppShell extends StatelessWidget {
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(children: [
-                Icon(Icons.monitor_heart, color: AppTheme.accent, size: 32),
-                const SizedBox(height: 4),
+                Image.asset('assets/images/monitro.png', width: 48, height: 48),
+                const SizedBox(height: 8),
                 Text('Monitro',
                   style: TextStyle(
                     color: AppTheme.accent,
@@ -127,9 +131,19 @@ class AppShell extends StatelessWidget {
                 label: Text('Alerts'),
               ),
               NavigationRailDestination(
+                icon: Icon(Icons.build_circle_outlined),
+                selectedIcon: Icon(Icons.build_circle),
+                label: Text('Service'),
+              ),
+              NavigationRailDestination(
                 icon: Icon(Icons.settings_outlined),
                 selectedIcon: Icon(Icons.settings),
                 label: Text('Settings'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.info_outline),
+                selectedIcon: Icon(Icons.info),
+                label: Text('About'),
               ),
             ],
           ),
@@ -141,13 +155,13 @@ class AppShell extends StatelessWidget {
   }
 
   int _navIndex(String location) {
-    const routes = ['/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts', '/settings'];
+    const routes = ['/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts', '/service-control', '/settings', '/about'];
     final i = routes.indexOf(location);
     return i < 0 ? 0 : i;
   }
 
   void _navigate(BuildContext context, int index) {
-    const routes = ['/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts', '/settings'];
+    const routes = ['/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts', '/service-control', '/settings', '/about'];
     context.go(routes[index]);
   }
 }

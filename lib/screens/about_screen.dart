@@ -1,0 +1,155 @@
+import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
+
+class AboutScreen extends StatelessWidget {
+  const AboutScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.surface,
+      appBar: AppBar(title: const Text('About Monitro')),
+      body: ListView(
+        padding: const EdgeInsets.all(32),
+        children: [
+          Row(
+            children: [
+              Image.asset('assets/images/monitro.png', width: 80, height: 80),
+              const SizedBox(width: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Monitro', style: TextStyle(color: AppTheme.accent, fontSize: 32, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  const Text('Local System Observability Platform', style: TextStyle(color: AppTheme.muted, fontSize: 16)),
+                  const SizedBox(height: 8),
+                  Text('Version 1.2.11 (Linux)', style: TextStyle(color: AppTheme.onSurface.withOpacity(0.8), fontSize: 14)),
+                ],
+              ),
+            ],
+          ),
+          const Divider(height: 64, color: AppTheme.surfaceAlt),
+          
+          _SectionHeader('Author Details'),
+          _InfoRow('Copyright', 'Chuck Talk'),
+          _InfoRow('Email', 'chuck@nordheim.online'),
+          
+          const SizedBox(height: 32),
+          _SectionHeader('Release Integrity'),
+          _InfoRow('GPG Signature', 'Detached signed (.asc)'),
+          _InfoRow('SHA512 Hash sum', 'Included in release artifacts'),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Text(
+              'To verify the integrity of the .deb package, download the corresponding .asc file and utilize gpg --verify, or check the SHA512 hash against the release checksums.',
+              style: TextStyle(color: AppTheme.muted, fontSize: 12),
+            ),
+          ),
+          
+          const Divider(height: 64, color: AppTheme.surfaceAlt),
+          _SectionHeader('MariaDB Setup Documentation'),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Text(
+              'Monitro relies on MariaDB for high-performance localized telemetry storage. The database daemon is NOT included with this application and must be installed manually. Please follow the instructions below to configure MariaDB for Monitro.',
+              style: TextStyle(color: AppTheme.onSurface, fontSize: 14, height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _CodeBlockHeader('1. Installation'),
+          const _CodeBlock('sudo apt update\nsudo apt install mariadb-server'),
+          const SizedBox(height: 16),
+          _CodeBlockHeader('2. Secure Installation'),
+          const _CodeBlock('sudo mariadb-secure-installation\n# Follow the prompts to configure root access securely.'),
+          const SizedBox(height: 16),
+          _CodeBlockHeader('3. Database Configuration'),
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+            child: Text(
+              'Log into the MariaDB instance and execute the following queries to establish the database and user permissions for the collector script.',
+              style: TextStyle(color: AppTheme.muted, fontSize: 13),
+            ),
+          ),
+          const _CodeBlock('''sudo mysql -u root -p
+          
+CREATE DATABASE monitro_db;
+CREATE USER 'monitro_user'@'localhost' IDENTIFIED BY 'monitro_secure_password';
+GRANT ALL PRIVILEGES ON monitro_db.* TO 'monitro_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;'''),
+          const SizedBox(height: 16),
+          _CodeBlockHeader('4. Monitro Configuration'),
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+            child: Text(
+              'Once the database is configured, ensure your /opt/monitro/config/monitro.yaml reflects the changes. Example:',
+              style: TextStyle(color: AppTheme.muted, fontSize: 13),
+            ),
+          ),
+          const _CodeBlock('''database:
+  host: "127.0.0.1"
+  port: 3306
+  name: "monitro_db"
+  user: "monitro_user"
+  password: "monitro_secure_password"'''),
+          const SizedBox(height: 48),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String text;
+  const _SectionHeader(this.text);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Text(text, style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 20, letterSpacing: 0.8)),
+  );
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label, value;
+  const _InfoRow(this.label, this.value);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 140, child: Text(label, style: const TextStyle(color: AppTheme.muted, fontSize: 14))),
+        Expanded(child: Text(value, style: const TextStyle(color: AppTheme.onSurface, fontSize: 14, fontWeight: FontWeight.w500))),
+      ],
+    ),
+  );
+}
+
+class _CodeBlockHeader extends StatelessWidget {
+  final String text;
+  const _CodeBlockHeader(this.text);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+    child: Text(text, style: const TextStyle(color: AppTheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
+  );
+}
+
+class _CodeBlock extends StatelessWidget {
+  final String code;
+  const _CodeBlock(this.code);
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppTheme.surfaceAlt.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: AppTheme.surfaceAlt, width: 1),
+    ),
+    child: SelectableText(
+      code,
+      style: const TextStyle(fontFamily: 'monospace', color: AppTheme.onSurface, fontSize: 13),
+    ),
+  );
+}

@@ -43,15 +43,32 @@ class MariaDbService {
   // ---------------------------------------------------------------------------
   Future<void> runMigrations() async {
     _log.info('Running schema migrations...');
-    // Resolve migrations directory relative to the script (development mode)
-    final scriptUri = Platform.script;
-    final repoRoot = File(scriptUri.toFilePath()).parent.parent.parent.path;
-    final migrationsDir = Directory('$repoRoot/db/migrations');
 
-    if (!migrationsDir.existsSync()) {
-      _log.warning('Migrations directory not found: ${migrationsDir.path}');
+    // Resolve migrations directory.
+    // Platform.resolvedExecutable gives the actual binary path (works in AOT).
+    // The binary lives at e.g. /opt/monitro/backend/monitro_collector,
+    // so we go up one level to the install root, then into db/migrations/.
+    final exeDir = File(Platform.resolvedExecutable).parent.path;
+    final installRoot = File(exeDir).parent.path; // /opt/monitro
+
+    // Try relative to install root first, then fall back to well-known path
+    Directory? migrationsDir;
+    for (final candidate in [
+      Directory('$installRoot/db/migrations'),
+      Directory('/opt/monitro/db/migrations'),
+    ]) {
+      if (candidate.existsSync()) {
+        migrationsDir = candidate;
+        break;
+      }
+    }
+
+    if (migrationsDir == null) {
+      _log.warning('Migrations directory not found. Checked: $installRoot/db/migrations and /opt/monitro/db/migrations');
       return;
     }
+
+    _log.info('Using migrations from: ${migrationsDir.path}');
 
     final files = migrationsDir
         .listSync()

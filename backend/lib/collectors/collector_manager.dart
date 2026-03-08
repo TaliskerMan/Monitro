@@ -62,6 +62,22 @@ class CollectorManager {
         ApiMonitor.collect(),
       ]);
 
+      // Merge network interfaces into netstat for the UI
+      final networkData = results[5];
+      final netstatData = results[6];
+      if (networkData is Map && netstatData is Map) {
+        if (networkData['interfaces'] is List) {
+          final uiInterfaces = <String, Map<String, dynamic>>{};
+          for (final iface in networkData['interfaces'] as List) {
+             uiInterfaces[iface['interface'] as String] = {
+               'bytes_recv': iface['rx_bytes'],
+               'bytes_sent': iface['tx_bytes'],
+             };
+          }
+          netstatData['interfaces'] = uiInterfaces;
+        }
+      }
+
       // Flatten into a single snapshot map
       final snapshot = <String, dynamic>{
         'collected_at': now.toIso8601String(),

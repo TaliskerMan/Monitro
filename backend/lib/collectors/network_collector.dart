@@ -18,7 +18,7 @@ class NetworkCollector {
         final colon = line.indexOf(':');
         if (colon < 0) continue;
         final iface = line.substring(0, colon).trim();
-        final parts = line.substring(colon + 1).trim().split(RegExp(r'\s+'));
+        final parts = line.substring(colon + 1).trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
         if (parts.length < 16) continue;
         interfaces.add({
           'interface':   iface,
