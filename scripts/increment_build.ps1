@@ -1,32 +1,29 @@
 # scripts/increment_build.ps1
-$pubspec = "pubspec.yaml"
-if (-Not (Test-Path $pubspec)) {
-    Write-Error "pubspec.yaml not found"
+param (
+    [Parameter(Mandatory=$true)]
+    [string]$Platform
+)
+
+$VersionFile = ".\scripts\version_${Platform}.txt"
+
+if (-Not (Test-Path $VersionFile)) {
+    Write-Error "Error: $VersionFile not found"
     exit 1
 }
 
-$content = Get-Content $pubspec
-$newContent = @()
-$newVersion = ""
+$CurrentVersion = (Get-Content $VersionFile).Trim()
 
-foreach ($line in $content) {
-    if ($line -match "^version:\s+(.+)$") {
-        $currentVersion = $Matches[1]
-        
-        if ($currentVersion -match "\+(.+)$") {
-            $baseVersion = $currentVersion -replace "\+.+$",""
-            $buildNum = [int]$Matches[1]
-            $newBuildNum = $buildNum + 1
-            $newVersion = "$baseVersion+$newBuildNum"
-        } else {
-            $baseVersion = $currentVersion
-            $newVersion = "$baseVersion+1"
-        }
-        $newContent += "version: $newVersion"
-    } else {
-        $newContent += $line
-    }
+if ($CurrentVersion -match "\+") {
+    $parts = $CurrentVersion -split "\+"
+    $BaseVersion = $parts[0]
+    $BuildNum = [int]$parts[1]
+    $NewBuildNum = $BuildNum + 1
+} else {
+    $BaseVersion = $CurrentVersion
+    $NewBuildNum = 1
 }
 
-$newContent | Set-Content $pubspec
-Write-Output $newVersion
+$NewVersion = "$BaseVersion+$NewBuildNum"
+Set-Content -Path $VersionFile -Value $NewVersion -NoNewline
+
+Write-Output $NewVersion

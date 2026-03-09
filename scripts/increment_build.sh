@@ -1,13 +1,21 @@
 #!/bin/bash
 # scripts/increment_build.sh
 
-PUBSPEC="pubspec.yaml"
-if [[ ! -f "$PUBSPEC" ]]; then
-  echo "Error: pubspec.yaml not found"
+if [ -z "$1" ]; then
+  echo "Usage: ./scripts/increment_build.sh <platform>"
+  echo "Example: ./scripts/increment_build.sh macos"
   exit 1
 fi
 
-CURRENT_VERSION=$(grep -m 1 '^version: ' "$PUBSPEC" | awk '{print $2}')
+PLATFORM=$1
+VERSION_FILE="scripts/version_${PLATFORM}.txt"
+
+if [[ ! -f "$VERSION_FILE" ]]; then
+  echo "Error: $VERSION_FILE not found"
+  exit 1
+fi
+
+CURRENT_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
 BASE_VERSION="${CURRENT_VERSION%+*}"
 BUILD_NUM="${CURRENT_VERSION#*+}"
 
@@ -19,14 +27,6 @@ fi
 
 NEW_VERSION="$BASE_VERSION+$NEW_BUILD_NUM"
 
-awk -v new_ver="$NEW_VERSION" '{
-  if ($1 == "version:") {
-    print "version: " new_ver
-  } else {
-    print $0
-  }
-}' "$PUBSPEC" > "$PUBSPEC.tmp"
-
-mv "$PUBSPEC.tmp" "$PUBSPEC"
+echo "$NEW_VERSION" > "$VERSION_FILE"
 
 echo "$NEW_VERSION"

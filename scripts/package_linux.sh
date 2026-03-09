@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+<<<<<<< HEAD
 
 # ── Auto-increment version ──────────────────────────────────────────
 # Read current version from pubspec.yaml (the single source of truth)
@@ -20,6 +21,13 @@ echo "════════════════════════�
 sed -i "s/^version: .*/version: ${VERSION}/" pubspec.yaml
 sed -i "s/Version [0-9]\+\.[0-9]\+\.[0-9]\+ (Linux)/Version ${VERSION} (Linux)/" lib/screens/about_screen.dart
 sed -i "s/_SettingTile(label: 'Version',.*value: '[0-9]\+\.[0-9]\+\.[0-9]\+')/_SettingTile(label: 'Version',      value: '${VERSION}')/" lib/screens/screens.dart
+=======
+echo "Incrementing linux build..."
+chmod +x scripts/increment_build.sh
+VERSION=$(./scripts/increment_build.sh linux)
+BUILD_NAME="${VERSION%+*}"
+BUILD_NUMBER="${VERSION#*+}"
+>>>>>>> a6a7032 (feat(macos): update application icon)
 
 ARCH="amd64"
 DEBFULLNAME="Chuck Talk"
@@ -28,7 +36,8 @@ PACKAGE_NAME="monitro_${VERSION}_${ARCH}"
 BUILD_DIR="build/linux/deb/${PACKAGE_NAME}"
 
 # Build flutter
-flutter build linux --release
+echo "Building Flutter Desktop for Linux..."
+flutter build linux --release --build-name="$BUILD_NAME" --build-number="$BUILD_NUMBER"
 
 # Build backend
 cd backend
@@ -58,6 +67,7 @@ EOF
 # Copy binaries
 cp -r build/linux/x64/release/bundle/* "${BUILD_DIR}/opt/monitro/"
 cp backend/monitro_collector "${BUILD_DIR}/opt/monitro/backend/"
+<<<<<<< HEAD
 cp -r db "${BUILD_DIR}/opt/monitro/"
 cp data/monitro.png "${BUILD_DIR}/usr/share/pixmaps/"
 
@@ -87,6 +97,9 @@ cp scripts/monitro-db-setup.sh "${BUILD_DIR}/opt/monitro/backend/monitro-db-setu
 chmod +x "${BUILD_DIR}/opt/monitro/backend/monitro-db-setup.sh"
 mkdir -p "${BUILD_DIR}/opt/monitro/db/migrations"
 cp db/migrations/*.sql "${BUILD_DIR}/opt/monitro/db/migrations/"
+=======
+cp assets/images/monitro_icon.png "${BUILD_DIR}/usr/share/pixmaps/monitro.png"
+>>>>>>> a6a7032 (feat(macos): update application icon)
 
 # Postinst (to setup systemd service for collector)
 cat <<'EOF' > "${BUILD_DIR}/DEBIAN/postinst"

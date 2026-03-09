@@ -1,9 +1,13 @@
 Write-Host "Incrementing build number..."
-$env:VERSION = .\scripts\increment_build.ps1
+$env:VERSION = .\scripts\increment_build.ps1 -Platform windows
 Write-Host "Building version: $env:VERSION"
 
+$parts = $env:VERSION -split "\+"
+$BaseVersion = $parts[0]
+$BuildNum = $parts[1]
+
 Write-Host "Building Flutter UI for Windows..."
-flutter build windows --release
+flutter build windows --release --build-name=$BaseVersion --build-number=$BuildNum
 
 Write-Host "Building backend..."
 Push-Location backend

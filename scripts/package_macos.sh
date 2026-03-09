@@ -10,11 +10,14 @@ fi
 
 echo "Incrementing build number..."
 chmod +x scripts/increment_build.sh
-VERSION=$(./scripts/increment_build.sh)
+VERSION=$(./scripts/increment_build.sh macos)
 echo "Building version: $VERSION"
 
+BUILD_NAME="${VERSION%+*}"
+BUILD_NUMBER="${VERSION#*+}"
+
 echo "Building Flutter UI for macOS..."
-flutter build macos --release
+flutter build macos --release --build-name="$BUILD_NAME" --build-number="$BUILD_NUMBER"
 
 echo "Building backend..."
 cd backend
