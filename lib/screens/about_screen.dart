@@ -14,7 +14,7 @@ class AboutScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Image.asset('assets/images/monitro.png', width: 80, height: 80),
+              Image.asset('assets/images/monitro_icon.png', width: 80, height: 80),
               const SizedBox(width: 24),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

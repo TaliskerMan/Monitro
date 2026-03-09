@@ -1,4 +1,4 @@
-// Monitro Flutter UI — Main Entry Point
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -119,7 +119,7 @@ class AppShell extends StatelessWidget {
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(children: [
-                Image.asset('assets/images/monitro.png', width: 48, height: 48),
+                Image.asset('assets/images/monitro_icon.png', width: 48, height: 48),
                 const SizedBox(height: 8),
                 Text('Monitro',
                   style: TextStyle(
@@ -130,7 +130,7 @@ class AppShell extends StatelessWidget {
                   )),
               ]),
             ),
-            destinations: const [
+            destinations: [
               NavigationRailDestination(
                 icon: Icon(Icons.dashboard_outlined),
                 selectedIcon: Icon(Icons.dashboard),
@@ -166,17 +166,17 @@ class AppShell extends StatelessWidget {
                 selectedIcon: Icon(Icons.notifications),
                 label: Text('Alerts'),
               ),
-              NavigationRailDestination(
+              if (!Platform.isMacOS) const NavigationRailDestination(
                 icon: Icon(Icons.build_circle_outlined),
                 selectedIcon: Icon(Icons.build_circle),
                 label: Text('Service'),
               ),
-              NavigationRailDestination(
+              const NavigationRailDestination(
                 icon: Icon(Icons.settings_outlined),
                 selectedIcon: Icon(Icons.settings),
                 label: Text('Settings'),
               ),
-              NavigationRailDestination(
+              if (!Platform.isMacOS) const NavigationRailDestination(
                 icon: Icon(Icons.info_outline),
                 selectedIcon: Icon(Icons.info),
                 label: Text('About'),
@@ -190,14 +190,19 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  List<String> get _navRoutes => [
+    '/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts',
+    if (!Platform.isMacOS) '/service-control',
+    '/settings',
+    if (!Platform.isMacOS) '/about'
+  ];
+
   int _navIndex(String location) {
-    const routes = ['/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts', '/service-control', '/settings', '/about'];
-    final i = routes.indexOf(location);
+    final i = _navRoutes.indexOf(location);
     return i < 0 ? 0 : i;
   }
 
   void _navigate(BuildContext context, int index) {
-    const routes = ['/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts', '/service-control', '/settings', '/about'];
-    context.go(routes[index]);
+    context.go(_navRoutes[index]);
   }
 }
