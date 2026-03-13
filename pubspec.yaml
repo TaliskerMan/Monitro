@@ -1,7 +1,7 @@
 name: monitro
 description: "Cross-platform local system observability platform — Flutter UI with Dart backend, MariaDB storage, and 4096-bit SSL."
 publish_to: "none"
-version: 1.2.11
+version: 1.2.12
 
 environment:
   sdk: ">=3.2.0 <4.0.0"
@@ -52,6 +52,12 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   build_runner: ^2.4.7
   riverpod_generator: ^2.3.5
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  macos:
+    generate: true
+    image_path: "assets/images/monitro_icon.png"
 
 flutter:
   uses-material-design: true

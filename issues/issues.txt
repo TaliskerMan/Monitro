@@ -1,0 +1,13 @@
+Hi Antigravity!
+
+I have created an issues folder here in the Monitro application. All of the screenshots are in this folder that exhibit issues that I need to resolve:
+
+1) The file "NicegraphNoMetrics" shows that none of the CPU metrics are being shown to the user
+2) The file "NoAPIMetrics" shows that there are no API call metrics being captured or displayed
+3) The file " NoCoreMetrics" shows that the Dashboard does not display core metrics at present, they are broken
+4) The file "NoNetworkMetrics" shows that the Network metrics are not being captured and displayed and no actions are possible with potential rogue connections 
+5) The file "NoProcessesWiredUp&NoActions" shows that no process is being captured, displayed, or have a possible action to end the process from that screen
+6) The file "NoUsers?" shows that there are no user sessions displayed on the screen - they were there before, but are gone now
+7) The file "WrongVersion" displays an older version number, not the current version of the application
+
+These are the issues that require resolution for the application to be considered ready to be signed.
