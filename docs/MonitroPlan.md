@@ -22,3 +22,8 @@ The primary constraint is MariaDB, an external database service needing system i
 
 - **Linux Philosophy**: *System-Managed.* Utilize `.deb` (Debian Packages) where dependencies like `mariadb-server` are explicitly passed to the host OS package manager (`apt`). Linux resolves side-loaded application prerequisites securely and natively.
 - **macOS & Windows Philosophy**: *Application-Managed.* Utilize standard Apple Disk Image (`.dmg`) formats and Windows Executables (`.exe` via InnoSetup). Since macOS and Windows mechanics cannot natively pull, install, and instantiate an external database runtime organically without significant friction, the Monitro Application itself acts as the runtime bootstrap. Upon launch, it asserts system requirements and provides a **Setup UI** to capture MariaDB credentials. It dynamically authors a backend configuration and spins up the background daemon seamlessly using system-level process management mechanisms.
+
+## 5. Planned Features & UI Enhancements
+
+- **Collector Service Management UI**: Implement interactive buttons within the application interface to explicitly "**Start Collector Service**" (running it in the background) and "**Stop Collector Service**" (terminating the running daemon process). This provides the user with granular, manual control over the backend daemon lifecycle directly from the UI.
+- **Tablet / XP-PEN Optimizations**: Work on layout, scaling, and interactive elements to ensure the UI is fully functional and aesthetically pleasing when used with pen tablets like the XP-PEN. This includes adjusting hit targets, hover states, and drag interactions to be stylus-friendly.
