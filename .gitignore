@@ -47,3 +47,4 @@ data/
 # Build artifacts
 *.aab
 *.apk
+artifacts/
