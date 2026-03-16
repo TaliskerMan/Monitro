@@ -1,33 +1,12 @@
 #!/bin/bash
 set -e
-<<<<<<< HEAD
-
 # ── Auto-increment version ──────────────────────────────────────────
 # Read current version from pubspec.yaml (the single source of truth)
-CURRENT_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
-MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
-MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
-PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
-
-# Increment the patch number
-PATCH=$((PATCH + 1))
-VERSION="${MAJOR}.${MINOR}.${PATCH}"
-
-echo "══════════════════════════════════════════════════════════"
-echo "  Monitro Build: ${CURRENT_VERSION} → ${VERSION}"
-echo "══════════════════════════════════════════════════════════"
-
-# Propagate new version to all source files
-sed -i "s/^version: .*/version: ${VERSION}/" pubspec.yaml
-sed -i "s/Version [0-9]\+\.[0-9]\+\.[0-9]\+ (Linux)/Version ${VERSION} (Linux)/" lib/screens/about_screen.dart
-sed -i "s/_SettingTile(label: 'Version',.*value: '[0-9]\+\.[0-9]\+\.[0-9]\+')/_SettingTile(label: 'Version',      value: '${VERSION}')/" lib/screens/screens.dart
-=======
 echo "Incrementing linux build..."
 chmod +x scripts/increment_build.sh
 VERSION=$(./scripts/increment_build.sh linux)
 BUILD_NAME="${VERSION%+*}"
 BUILD_NUMBER="${VERSION#*+}"
->>>>>>> a6a7032 (feat(macos): update application icon)
 
 ARCH="amd64"
 DEBFULLNAME="Chuck Talk"
@@ -67,29 +46,27 @@ EOF
 # Copy binaries
 cp -r build/linux/x64/release/bundle/* "${BUILD_DIR}/opt/monitro/"
 cp backend/monitro_collector "${BUILD_DIR}/opt/monitro/backend/"
-<<<<<<< HEAD
 cp -r db "${BUILD_DIR}/opt/monitro/"
-cp data/monitro.png "${BUILD_DIR}/usr/share/pixmaps/"
 
 # Install icon into hicolor theme (required for appgrid visibility)
 for SIZE in 48 64 128 256 512; do
   mkdir -p "${BUILD_DIR}/usr/share/icons/hicolor/${SIZE}x${SIZE}/apps"
-  cp data/monitro.png "${BUILD_DIR}/usr/share/icons/hicolor/${SIZE}x${SIZE}/apps/monitro.png"
+  cp assets/images/monitro_icon.png "${BUILD_DIR}/usr/share/icons/hicolor/${SIZE}x${SIZE}/apps/monitro.png"
 done
 
 # Also install a copy to pixmaps as a fallback
 mkdir -p "${BUILD_DIR}/usr/share/pixmaps"
-cp data/monitro.png "${BUILD_DIR}/usr/share/pixmaps/monitro.png"
+cp assets/images/monitro_icon.png "${BUILD_DIR}/usr/share/pixmaps/monitro.png"
 
 # Copy config file
 mkdir -p "${BUILD_DIR}/opt/monitro/config"
 cp config/monitro.example.yaml "${BUILD_DIR}/opt/monitro/config/monitro.example.yaml"
 
-# Copy certs directory
+# Copy certs directory scripts (DO NOT copy actual certificates to prevent mismatch on upgrades)
 mkdir -p "${BUILD_DIR}/opt/monitro/certs"
-if [ -d certs ] && [ "$(ls -A certs 2>/dev/null)" ]; then
-  cp -r certs/* "${BUILD_DIR}/opt/monitro/certs/" 2>/dev/null || true
-  chmod +x "${BUILD_DIR}/opt/monitro/certs/gen_certs.sh" 2>/dev/null || true
+if [ -f certs/gen_certs.sh ]; then
+  cp certs/gen_certs.sh "${BUILD_DIR}/opt/monitro/certs/"
+  chmod +x "${BUILD_DIR}/opt/monitro/certs/gen_certs.sh"
 fi
 
 # Copy database setup script and migrations
@@ -97,9 +74,6 @@ cp scripts/monitro-db-setup.sh "${BUILD_DIR}/opt/monitro/backend/monitro-db-setu
 chmod +x "${BUILD_DIR}/opt/monitro/backend/monitro-db-setup.sh"
 mkdir -p "${BUILD_DIR}/opt/monitro/db/migrations"
 cp db/migrations/*.sql "${BUILD_DIR}/opt/monitro/db/migrations/"
-=======
-cp assets/images/monitro_icon.png "${BUILD_DIR}/usr/share/pixmaps/monitro.png"
->>>>>>> a6a7032 (feat(macos): update application icon)
 
 # Postinst (to setup systemd service for collector)
 cat <<'EOF' > "${BUILD_DIR}/DEBIAN/postinst"
@@ -204,3 +178,24 @@ EOF
 dpkg-deb --build "${BUILD_DIR}"
 echo "Created build/linux/deb/${PACKAGE_NAME}.deb"
 
+# ── Signing and Hashing ──────────────────────────────────────────────
+echo "Signing and Hashing artifacts..."
+cd build/linux/deb/
+
+# Generate SHA512 checksum
+sha512sum "${PACKAGE_NAME}.deb" > "${PACKAGE_NAME}.deb.sha512"
+
+# Check if key exists in keyring, else skip signing for CI/Test
+if gpg --list-keys "${DEBEMAIL}" &> /dev/null; then
+  # Create detached signature
+  gpg --armor --detach-sign --local-user "${DEBEMAIL}" --output "${PACKAGE_NAME}.deb.asc" "${PACKAGE_NAME}.deb"
+  
+  # Export public key
+  gpg --armor --export "${DEBEMAIL}" > chuck_pubkey.asc
+else
+  echo "GPG Key for ${DEBEMAIL} not found. Skipping signing."
+fi
+
+echo "Release artifacts built successfully in build/linux/deb/"
+ls -la
+cd ../../..

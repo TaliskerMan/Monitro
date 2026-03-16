@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../theme/app_theme.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -23,7 +24,18 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   const Text('Local System Observability Platform', style: TextStyle(color: AppTheme.muted, fontSize: 16)),
                   const SizedBox(height: 8),
-                  Text('Version 1.2.11 (Linux)', style: TextStyle(color: AppTheme.onSurface.withOpacity(0.8), fontSize: 14)),
+                  FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return Text(
+                          'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber} (Linux)',
+                          style: TextStyle(color: AppTheme.onSurface.withOpacity(0.8), fontSize: 14),
+                        );
+                      }
+                      return Text('Loading version...', style: TextStyle(color: AppTheme.onSurface.withOpacity(0.8), fontSize: 14));
+                    },
+                  ),
                 ],
               ),
             ],
