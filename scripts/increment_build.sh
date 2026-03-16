@@ -16,10 +16,16 @@ if [[ ! -f "$VERSION_FILE" ]]; then
 fi
 
 CURRENT_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
-BASE_VERSION="${CURRENT_VERSION%+*}"
+OLD_BASE_VERSION="${CURRENT_VERSION%+*}"
 BUILD_NUM="${CURRENT_VERSION#*+}"
 
-if [[ "$CURRENT_VERSION" != *"+"* ]]; then
+if [[ -f "pubspec.yaml" ]]; then
+  BASE_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1 | tr -d '\r')
+else
+  BASE_VERSION="$OLD_BASE_VERSION"
+fi
+
+if [[ "$CURRENT_VERSION" != *"+"* || -z "$BUILD_NUM" ]]; then
   NEW_BUILD_NUM=1
 else
   NEW_BUILD_NUM=$((BUILD_NUM + 1))
