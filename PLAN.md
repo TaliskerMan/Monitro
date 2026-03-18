@@ -1,1 +1,4 @@
-- Sync local changes
+- [x] Sync local changes
+- [x] Build and package Linux release 1.2.3+25
+- [x] GPG Sign Linux release 1.2.3+25
+- [ ] Verify Linux build functionality locally

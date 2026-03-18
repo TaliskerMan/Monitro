@@ -82,7 +82,9 @@ class MonitroApp extends StatelessWidget {
             GoRoute(path: '/users',      builder: (c, s) => const UsersScreen()),
             GoRoute(path: '/api-calls',  builder: (c, s) => const ApiMonitorScreen()),
             GoRoute(path: '/alerts',     builder: (c, s) => const AlertsScreen()),
+            GoRoute(path: '/service-control', builder: (c, s) => const ServiceControlScreen()),
             GoRoute(path: '/settings',   builder: (c, s) => const SettingsScreen()),
+            GoRoute(path: '/about',      builder: (c, s) => const AboutScreen()),
           ],
         ),
       ],
@@ -166,7 +168,7 @@ class AppShell extends StatelessWidget {
                 selectedIcon: Icon(Icons.notifications),
                 label: Text('Alerts'),
               ),
-              if (!Platform.isMacOS) const NavigationRailDestination(
+              const NavigationRailDestination(
                 icon: Icon(Icons.build_circle_outlined),
                 selectedIcon: Icon(Icons.build_circle),
                 label: Text('Service'),
@@ -176,7 +178,7 @@ class AppShell extends StatelessWidget {
                 selectedIcon: Icon(Icons.settings),
                 label: Text('Settings'),
               ),
-              if (!Platform.isMacOS) const NavigationRailDestination(
+              const NavigationRailDestination(
                 icon: Icon(Icons.info_outline),
                 selectedIcon: Icon(Icons.info),
                 label: Text('About'),
@@ -192,9 +194,9 @@ class AppShell extends StatelessWidget {
 
   List<String> get _navRoutes => [
     '/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts',
-    if (!Platform.isMacOS) '/service-control',
+    '/service-control',
     '/settings',
-    if (!Platform.isMacOS) '/about'
+    '/about'
   ];
 
   int _navIndex(String location) {

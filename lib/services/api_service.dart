@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 class ApiService {
-  static const String _baseUrl = 'https://127.0.0.1:8443/api/v1';
+  static String _baseUrl = 'https://127.0.0.1:8443/api/v1';
 
   /// HTTP client that trusts the local Monitro CA certificate
   static http.Client get _client {
@@ -24,6 +24,16 @@ class ApiService {
       final response = await _client.get(Uri.parse('$_baseUrl/health'));
       return response.statusCode == 200;
     } catch (e) {
+      if (_baseUrl.startsWith('https://')) {
+        // Fallback to HTTP and retry
+        _baseUrl = 'http://127.0.0.1:8443/api/v1';
+        try {
+          final fallbackResponse = await _client.get(Uri.parse('$_baseUrl/health'));
+          return fallbackResponse.statusCode == 200;
+        } catch (_) {
+          return false;
+        }
+      }
       return false;
     }
   }

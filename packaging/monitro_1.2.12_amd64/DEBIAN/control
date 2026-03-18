@@ -1,0 +1,6 @@
+Package: monitro
+Version: 1.2.12
+Architecture: amd64
+Maintainer: Chuck Talk <chuck@nordheim.online>
+Description: Cross-platform local system observability platform
+ Flutter UI with Dart backend, MariaDB storage, and 4096-bit SSL.
