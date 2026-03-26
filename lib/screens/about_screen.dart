@@ -85,7 +85,7 @@ class AboutScreen extends StatelessWidget {
           const _CodeBlock('''sudo mysql -u root -p
           
 CREATE DATABASE monitro_db;
-CREATE USER 'monitro_user'@'localhost' IDENTIFIED BY 'monitro_secure_password';
+CREATE USER 'monitro_user'@'localhost' IDENTIFIED BY 'YOUR_SECURE_PASSWORD';
 GRANT ALL PRIVILEGES ON monitro_db.* TO 'monitro_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;'''),

@@ -13,6 +13,7 @@ import 'theme/app_theme.dart';
 import 'services/preferences_service.dart';
 import 'services/backend_service.dart';
 import 'services/config_generator.dart';
+import 'services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -26,7 +27,12 @@ Future<void> main() async {
     final settings = SettingsController(sharedPrefs).state;
     final configPath = await ConfigGenerator.generateConfig(settings);
     await BackendService.start(configPath);
+  // Wait for the backend to spin up if needed
   }
+
+  // Initialize ApiService key
+  final settings = SettingsController(sharedPrefs).state;
+  ApiService.apiKey = settings.apiKey;
 
   runApp(
     ProviderScope(

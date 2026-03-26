@@ -36,6 +36,7 @@ class MonitroApiServer {
     // Resolve relative to config file's directory, so running from backend/ works correctly
     final certPath = certRelPath.startsWith('/') ? certRelPath : '$configDir/$certRelPath';
     final keyPath  = keyRelPath.startsWith('/')  ? keyRelPath  : '$configDir/$keyRelPath';
+    final apiKey   = config['api_key'] as String?;
 
     final router = Router()
       ..get('/api/v1/health',              _handleHealth)
@@ -50,6 +51,7 @@ class MonitroApiServer {
 
     final handler = const Pipeline()
         .addMiddleware(_corsMiddleware())
+        .addMiddleware(_authMiddleware(apiKey))
         .addMiddleware(logRequests())
         .addHandler(router.call);
 
@@ -193,6 +195,23 @@ class MonitroApiServer {
         return response.change(headers: {
           'Access-Control-Allow-Origin': '*',
         });
+      };
+    };
+  }
+
+  Middleware _authMiddleware(String? apiKey) {
+    return (Handler innerHandler) {
+      return (Request request) async {
+        if (request.method == 'OPTIONS' || request.url.path == 'api/v1/health') {
+          return await innerHandler(request);
+        }
+        if (apiKey != null && apiKey.isNotEmpty) {
+          final authHeader = request.headers['authorization'];
+          if (authHeader == null || authHeader != 'Bearer $apiKey') {
+            return Response.forbidden(jsonEncode({'error': 'Unauthorized: Invalid API Key'}));
+          }
+        }
+        return await innerHandler(request);
       };
     };
   }

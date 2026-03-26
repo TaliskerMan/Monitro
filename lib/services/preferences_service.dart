@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
+import 'dart:convert';
 
 // Provides the initialized instance of SharedPreferences
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -19,6 +21,9 @@ class AppSettings {
   final String? mariadbPass;
   final String? mariadbDb;
 
+  // Security
+  final String? apiKey;
+
   const AppSettings({
     this.selectedNetworkInterface = 'All',
     this.showPerCoreCpu = false,
@@ -28,6 +33,7 @@ class AppSettings {
     this.mariadbUser,
     this.mariadbPass,
     this.mariadbDb,
+    this.apiKey,
   });
 
   bool get hasDatabaseConfig => mariadbHost != null && mariadbUser != null && mariadbPass != null;
@@ -41,6 +47,7 @@ class AppSettings {
     String? mariadbUser,
     String? mariadbPass,
     String? mariadbDb,
+    String? apiKey,
   }) {
     return AppSettings(
       selectedNetworkInterface: selectedNetworkInterface ?? this.selectedNetworkInterface,
@@ -51,6 +58,7 @@ class AppSettings {
       mariadbUser: mariadbUser ?? this.mariadbUser,
       mariadbPass: mariadbPass ?? this.mariadbPass,
       mariadbDb: mariadbDb ?? this.mariadbDb,
+      apiKey: apiKey ?? this.apiKey,
     );
   }
 }
@@ -62,6 +70,14 @@ class SettingsController extends StateNotifier<AppSettings> {
   SettingsController(this._prefs) : super(_loadSettings(_prefs));
 
   static AppSettings _loadSettings(SharedPreferences prefs) {
+    String? apiKey = prefs.getString('apiKey');
+    if (apiKey == null) {
+      final random = Random.secure();
+      final values = List<int>.generate(32, (i) => random.nextInt(256));
+      apiKey = base64UrlEncode(values);
+      prefs.setString('apiKey', apiKey);
+    }
+
     return AppSettings(
       selectedNetworkInterface: prefs.getString('selectedNetworkInterface') ?? 'All',
       showPerCoreCpu: prefs.getBool('showPerCoreCpu') ?? false,
@@ -71,6 +87,7 @@ class SettingsController extends StateNotifier<AppSettings> {
       mariadbUser: prefs.getString('mariadbUser'),
       mariadbPass: prefs.getString('mariadbPass'),
       mariadbDb: prefs.getString('mariadbDb'),
+      apiKey: prefs.getString('apiKey'),
     );
   }
 
@@ -109,6 +126,11 @@ class SettingsController extends StateNotifier<AppSettings> {
       mariadbPass: pass,
       mariadbDb: db,
     );
+  }
+
+  void setApiKey(String key) {
+    _prefs.setString('apiKey', key);
+    state = state.copyWith(apiKey: key);
   }
 }
 

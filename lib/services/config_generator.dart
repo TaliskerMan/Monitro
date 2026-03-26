@@ -36,6 +36,7 @@ server:
   require_client_ca: false
   cert: "$certPath"
   key: "$keyPath"
+  api_key: "${settings.apiKey}"
 
 database:
   host: ${settings.mariadbHost ?? '127.0.0.1'}

@@ -5,7 +5,14 @@ import 'dart:convert';
 import 'dart:io';
 
 class ApiService {
+  static String? apiKey;
   static String _baseUrl = 'https://127.0.0.1:8443/api/v1';
+
+  static Map<String, String> get _headers {
+    final h = <String, String>{};
+    if (apiKey != null) h['Authorization'] = 'Bearer $apiKey';
+    return h;
+  }
 
   /// HTTP client that trusts the local Monitro CA certificate
   static http.Client get _client {
@@ -21,14 +28,14 @@ class ApiService {
 
   static Future<bool> isBackendHealthy() async {
     try {
-      final response = await _client.get(Uri.parse('$_baseUrl/health'));
+      final response = await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
       return response.statusCode == 200;
     } catch (e) {
       if (_baseUrl.startsWith('https://')) {
         // Fallback to HTTP and retry
         _baseUrl = 'http://127.0.0.1:8443/api/v1';
         try {
-          final fallbackResponse = await _client.get(Uri.parse('$_baseUrl/health'));
+          final fallbackResponse = await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
           return fallbackResponse.statusCode == 200;
         } catch (_) {
           return false;
@@ -59,7 +66,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> killProcess(int pid) async {
     try {
-      final response = await _client.delete(Uri.parse('$_baseUrl/processes/$pid'));
+      final response = await _client.delete(Uri.parse('$_baseUrl/processes/$pid'), headers: _headers);
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
@@ -87,7 +94,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> _get(String path) async {
     try {
-      final response = await _client.get(Uri.parse('$_baseUrl$path'));
+      final response = await _client.get(Uri.parse('$_baseUrl$path'), headers: _headers);
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
