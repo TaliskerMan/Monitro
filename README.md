@@ -92,7 +92,7 @@ The easiest way to install Monitro on Debian-based systems is via our pre-packag
    Grab the latest `.deb` release from [GitHub Releases](https://github.com/TaliskerMan/Monitro/releases) and install it:
 
    ```bash
-   sudo dpkg -i monitro_1.2.3_amd64.deb
+   sudo dpkg -i monitro_1.2.13_amd64.deb
    ```
 
    *(Note: The installer will automatically generate unique 4096-bit SSL certificates for securely connecting the GUI to the local daemon!)*

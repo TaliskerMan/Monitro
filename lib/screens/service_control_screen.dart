@@ -104,9 +104,11 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
       ProcessResult result;
 
       if (turnOn) {
+        await Process.run('pkexec', [
+          '/usr/bin/systemctl', 'reset-failed', 'monitro-collector.service',
+        ]);
         result = await Process.run('pkexec', [
-          '/usr/bin/bash', '-c',
-          '/usr/bin/systemctl reset-failed monitro-collector.service 2>/dev/null; /usr/bin/systemctl start monitro-collector.service',
+          '/usr/bin/systemctl', 'start', 'monitro-collector.service',
         ]);
       } else {
         result = await Process.run('pkexec', [

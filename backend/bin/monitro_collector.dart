@@ -55,12 +55,31 @@ Future<void> main(List<String> args) async {
   // Set up logging
   // ---------------------------------------------------------------------------
   Logger.root.level = (results['verbose'] as bool) ? Level.ALL : Level.INFO;
+  
+  final logFile = File('/var/log/monitro-collector.log');
+  IOSink? logSink;
+  try {
+    logSink = logFile.openWrite(mode: FileMode.append);
+  } catch (e) {
+    print('Warning: Cannot open /var/log/monitro-collector.log for writing. Falling back to stdout string.');
+  }
+
   Logger.root.onRecord.listen((record) {
     final ts = record.time.toIso8601String();
     final level = record.level.name.padRight(7);
-    print('[$ts] $level ${record.loggerName}: ${record.message}');
-    if (record.error != null) print('  ERROR: ${record.error}');
-    if (record.stackTrace != null) print('  STACK: ${record.stackTrace}');
+    final msg = '[$ts] $level ${record.loggerName}: ${record.message}';
+    
+    print(msg);
+    logSink?.writeln(msg);
+    
+    if (record.error != null) {
+      print('  ERROR: ${record.error}');
+      logSink?.writeln('  ERROR: ${record.error}');
+    }
+    if (record.stackTrace != null) {
+      print('  STACK: ${record.stackTrace}');
+      logSink?.writeln('  STACK: ${record.stackTrace}');
+    }
   });
 
   // ---------------------------------------------------------------------------
