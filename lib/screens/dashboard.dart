@@ -34,7 +34,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   void _setupTimer() {
     _refreshTimer?.cancel();
     final interval = ref.read(settingsProvider).refreshIntervalSeconds;
-    _refreshTimer = Timer.periodic(Duration(seconds: interval), (_) => _loadMetrics());
+    _refreshTimer =
+        Timer.periodic(Duration(seconds: interval), (_) => _loadMetrics());
   }
 
   @override
@@ -54,7 +55,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
@@ -74,7 +79,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () { _refreshTimer?.cancel(); _loadMetrics(); _setupTimer(); },
+            onPressed: () {
+              _refreshTimer?.cancel();
+              _loadMetrics();
+              _setupTimer();
+            },
             tooltip: 'Refresh',
           ),
         ],
@@ -92,11 +101,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, color: AppTheme.danger, size: 64),
+          const Icon(Icons.error_outline, color: AppTheme.danger, size: 64),
           const SizedBox(height: 16),
           const Text(
             'Cannot connect to Monitro backend',
-            style: TextStyle(color: AppTheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: AppTheme.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -105,18 +117,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          Text(_error ?? '', style: const TextStyle(color: AppTheme.muted, fontSize: 11)),
+          Text(_error ?? '',
+              style: const TextStyle(color: AppTheme.muted, fontSize: 11)),
         ],
       ),
     );
   }
 
   Widget _buildDashboard() {
-    final system   = _metrics?['system']   as Map?;
-    final cpu      = _metrics?['cpu']      as Map?;
-    final memory   = _metrics?['memory']   as Map?;
-    final netstat  = _metrics?['netstat']  as Map?;
-    
+    final system = _metrics?['system'] as Map?;
+    final cpu = _metrics?['cpu'] as Map?;
+    final memory = _metrics?['memory'] as Map?;
+    final netstat = _metrics?['netstat'] as Map?;
+
     final settings = ref.watch(settingsProvider);
 
     // Build the grid items dynamically based on settings
@@ -159,7 +172,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       title: 'Load 1m',
       value: '${system?['load_1'] ?? '?'}',
       icon: Icons.show_chart,
-      subtitle: '5m: ${system?['load_5'] ?? '?'}  15m: ${system?['load_15'] ?? '?'}',
+      subtitle:
+          '5m: ${system?['load_5'] ?? '?'}  15m: ${system?['load_15'] ?? '?'}',
       color: AppTheme.accent,
     ));
 
@@ -200,12 +214,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         children: [
           if (system != null) _buildSystemHeader(system),
           const SizedBox(height: 20),
-
           LayoutBuilder(builder: (ctx, constraints) {
-            final cols = constraints.maxWidth > 1200 ? 5
-                       : constraints.maxWidth > 800  ? 4
-                       : constraints.maxWidth > 500  ? 2
-                       : 1;
+            final cols = constraints.maxWidth > 1200
+                ? 5
+                : constraints.maxWidth > 800
+                    ? 4
+                    : constraints.maxWidth > 500
+                        ? 2
+                        : 1;
             return GridView.count(
               crossAxisCount: cols,
               shrinkWrap: true,
@@ -228,7 +244,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       Flexible(
         child: Text(
           system['hostname'] ?? 'Unknown',
-          style: const TextStyle(color: AppTheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
+          style: const TextStyle(
+              color: AppTheme.onSurface,
+              fontWeight: FontWeight.bold,
+              fontSize: 16),
           overflow: TextOverflow.ellipsis,
         ),
       ),
@@ -287,10 +306,19 @@ class _MetricCard extends StatelessWidget {
             Row(children: [
               Icon(icon, color: color, size: 18),
               const SizedBox(width: 8),
-              Expanded(child: Text(title, style: const TextStyle(fontSize: 13, color: AppTheme.muted), overflow: TextOverflow.ellipsis)),
+              Expanded(
+                  child: Text(title,
+                      style:
+                          const TextStyle(fontSize: 13, color: AppTheme.muted),
+                      overflow: TextOverflow.ellipsis)),
             ]),
-            Text(value, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: color), overflow: TextOverflow.ellipsis),
-            Text(subtitle, style: const TextStyle(fontSize: 11, color: AppTheme.muted), overflow: TextOverflow.ellipsis),
+            Text(value,
+                style: TextStyle(
+                    fontSize: 28, fontWeight: FontWeight.bold, color: color),
+                overflow: TextOverflow.ellipsis),
+            Text(subtitle,
+                style: const TextStyle(fontSize: 11, color: AppTheme.muted),
+                overflow: TextOverflow.ellipsis),
           ],
         ),
       ),

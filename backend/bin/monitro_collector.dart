@@ -13,9 +13,9 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
 
-import '../lib/api/server.dart';
-import '../lib/collectors/collector_manager.dart';
-import '../lib/storage/mariadb_service.dart';
+import 'package:monitro_collector/api/server.dart';
+import 'package:monitro_collector/collectors/collector_manager.dart';
+import 'package:monitro_collector/storage/mariadb_service.dart';
 
 final _log = Logger('monitro_collector');
 
@@ -55,23 +55,24 @@ Future<void> main(List<String> args) async {
   // Set up logging
   // ---------------------------------------------------------------------------
   Logger.root.level = (results['verbose'] as bool) ? Level.ALL : Level.INFO;
-  
+
   final logFile = File('/var/log/monitro-collector.log');
   IOSink? logSink;
   try {
     logSink = logFile.openWrite(mode: FileMode.append);
   } catch (e) {
-    print('Warning: Cannot open /var/log/monitro-collector.log for writing. Falling back to stdout string.');
+    print(
+        'Warning: Cannot open /var/log/monitro-collector.log for writing. Falling back to stdout string.');
   }
 
   Logger.root.onRecord.listen((record) {
     final ts = record.time.toIso8601String();
     final level = record.level.name.padRight(7);
     final msg = '[$ts] $level ${record.loggerName}: ${record.message}';
-    
+
     print(msg);
     logSink?.writeln(msg);
-    
+
     if (record.error != null) {
       print('  ERROR: ${record.error}');
       logSink?.writeln('  ERROR: ${record.error}');
@@ -91,7 +92,8 @@ Future<void> main(List<String> args) async {
   final configFile = File(configPath);
   if (!configFile.existsSync()) {
     _log.severe('Configuration file not found: $configPath');
-    _log.info('Copy config/monitro.example.yaml to config/monitro.yaml and edit it.');
+    _log.info(
+        'Copy config/monitro.example.yaml to config/monitro.yaml and edit it.');
     exit(1);
   }
 

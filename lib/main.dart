@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +26,7 @@ Future<void> main() async {
     final settings = SettingsController(sharedPrefs).state;
     final configPath = await ConfigGenerator.generateConfig(settings);
     await BackendService.start(configPath);
-  // Wait for the backend to spin up if needed
+    // Wait for the backend to spin up if needed
   }
 
   // Initialize ApiService key
@@ -50,16 +49,20 @@ final _router = GoRouter(
     ShellRoute(
       builder: (context, state, child) => AppShell(child: child),
       routes: [
-        GoRoute(path: '/',           builder: (c, s) => const DashboardScreen()),
-        GoRoute(path: '/processes',  builder: (c, s) => const ProcessesScreen()),
-        GoRoute(path: '/cpu-cores',  builder: (c, s) => const CpuCoresScreen()),
-        GoRoute(path: '/connections', builder: (c, s) => const ConnectionsScreen()),
-        GoRoute(path: '/users',      builder: (c, s) => const UsersScreen()),
-        GoRoute(path: '/api-calls',  builder: (c, s) => const ApiMonitorScreen()),
-        GoRoute(path: '/alerts',     builder: (c, s) => const AlertsScreen()),
-        GoRoute(path: '/service-control', builder: (c, s) => const ServiceControlScreen()),
-        GoRoute(path: '/settings',   builder: (c, s) => const SettingsScreen()),
-        GoRoute(path: '/about',      builder: (c, s) => const AboutScreen()),
+        GoRoute(path: '/', builder: (c, s) => const DashboardScreen()),
+        GoRoute(path: '/processes', builder: (c, s) => const ProcessesScreen()),
+        GoRoute(path: '/cpu-cores', builder: (c, s) => const CpuCoresScreen()),
+        GoRoute(
+            path: '/connections', builder: (c, s) => const ConnectionsScreen()),
+        GoRoute(path: '/users', builder: (c, s) => const UsersScreen()),
+        GoRoute(
+            path: '/api-calls', builder: (c, s) => const ApiMonitorScreen()),
+        GoRoute(path: '/alerts', builder: (c, s) => const AlertsScreen()),
+        GoRoute(
+            path: '/service-control',
+            builder: (c, s) => const ServiceControlScreen()),
+        GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
+        GoRoute(path: '/about', builder: (c, s) => const AboutScreen()),
       ],
     ),
   ],
@@ -81,16 +84,25 @@ class MonitroApp extends StatelessWidget {
         ShellRoute(
           builder: (context, state, child) => AppShell(child: child),
           routes: [
-            GoRoute(path: '/',           builder: (c, s) => const DashboardScreen()),
-            GoRoute(path: '/processes',  builder: (c, s) => const ProcessesScreen()),
-            GoRoute(path: '/cpu-cores',  builder: (c, s) => const CpuCoresScreen()),
-            GoRoute(path: '/connections', builder: (c, s) => const ConnectionsScreen()),
-            GoRoute(path: '/users',      builder: (c, s) => const UsersScreen()),
-            GoRoute(path: '/api-calls',  builder: (c, s) => const ApiMonitorScreen()),
-            GoRoute(path: '/alerts',     builder: (c, s) => const AlertsScreen()),
-            GoRoute(path: '/service-control', builder: (c, s) => const ServiceControlScreen()),
-            GoRoute(path: '/settings',   builder: (c, s) => const SettingsScreen()),
-            GoRoute(path: '/about',      builder: (c, s) => const AboutScreen()),
+            GoRoute(path: '/', builder: (c, s) => const DashboardScreen()),
+            GoRoute(
+                path: '/processes', builder: (c, s) => const ProcessesScreen()),
+            GoRoute(
+                path: '/cpu-cores', builder: (c, s) => const CpuCoresScreen()),
+            GoRoute(
+                path: '/connections',
+                builder: (c, s) => const ConnectionsScreen()),
+            GoRoute(path: '/users', builder: (c, s) => const UsersScreen()),
+            GoRoute(
+                path: '/api-calls',
+                builder: (c, s) => const ApiMonitorScreen()),
+            GoRoute(path: '/alerts', builder: (c, s) => const AlertsScreen()),
+            GoRoute(
+                path: '/service-control',
+                builder: (c, s) => const ServiceControlScreen()),
+            GoRoute(
+                path: '/settings', builder: (c, s) => const SettingsScreen()),
+            GoRoute(path: '/about', builder: (c, s) => const AboutScreen()),
           ],
         ),
       ],
@@ -127,18 +139,19 @@ class AppShell extends StatelessWidget {
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(children: [
-                Image.asset('assets/images/monitro_icon.png', width: 48, height: 48),
+                Image.asset('assets/images/monitro_icon.png',
+                    width: 48, height: 48),
                 const SizedBox(height: 8),
-                Text('Monitro',
-                  style: TextStyle(
-                    color: AppTheme.accent,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  )),
+                const Text('Monitro',
+                    style: TextStyle(
+                      color: AppTheme.accent,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    )),
               ]),
             ),
-            destinations: [
+            destinations: const [
               NavigationRailDestination(
                 icon: Icon(Icons.dashboard_outlined),
                 selectedIcon: Icon(Icons.dashboard),
@@ -174,17 +187,17 @@ class AppShell extends StatelessWidget {
                 selectedIcon: Icon(Icons.notifications),
                 label: Text('Alerts'),
               ),
-              const NavigationRailDestination(
+              NavigationRailDestination(
                 icon: Icon(Icons.build_circle_outlined),
                 selectedIcon: Icon(Icons.build_circle),
                 label: Text('Service'),
               ),
-              const NavigationRailDestination(
+              NavigationRailDestination(
                 icon: Icon(Icons.settings_outlined),
                 selectedIcon: Icon(Icons.settings),
                 label: Text('Settings'),
               ),
-              const NavigationRailDestination(
+              NavigationRailDestination(
                 icon: Icon(Icons.info_outline),
                 selectedIcon: Icon(Icons.info),
                 label: Text('About'),
@@ -199,11 +212,17 @@ class AppShell extends StatelessWidget {
   }
 
   List<String> get _navRoutes => [
-    '/', '/processes', '/cpu-cores', '/connections', '/users', '/api-calls', '/alerts',
-    '/service-control',
-    '/settings',
-    '/about'
-  ];
+        '/',
+        '/processes',
+        '/cpu-cores',
+        '/connections',
+        '/users',
+        '/api-calls',
+        '/alerts',
+        '/service-control',
+        '/settings',
+        '/about'
+      ];
 
   int _navIndex(String location) {
     final i = _navRoutes.indexOf(location);

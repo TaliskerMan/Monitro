@@ -65,31 +65,29 @@ class CollectorManager {
       // Merge network interfaces into netstat for the UI
       final networkData = results[5];
       final netstatData = results[6];
-      if (networkData is Map && netstatData is Map) {
-        if (networkData['interfaces'] is List) {
-          final uiInterfaces = <String, Map<String, dynamic>>{};
-          for (final iface in networkData['interfaces'] as List) {
-             uiInterfaces[iface['interface'] as String] = {
-               'bytes_recv': iface['rx_bytes'],
-               'bytes_sent': iface['tx_bytes'],
-             };
-          }
-          netstatData['interfaces'] = uiInterfaces;
+      if (networkData['interfaces'] is List) {
+        final uiInterfaces = <String, Map<String, dynamic>>{};
+        for (final iface in networkData['interfaces'] as List) {
+          uiInterfaces[iface['interface'] as String] = {
+            'bytes_recv': iface['rx_bytes'],
+            'bytes_sent': iface['tx_bytes'],
+          };
         }
+        netstatData['interfaces'] = uiInterfaces;
       }
 
       // Flatten into a single snapshot map
       final snapshot = <String, dynamic>{
         'collected_at': now.toIso8601String(),
-        'system':    results[0],
-        'cpu':       results[1],
-        'memory':    results[2],
-        'disk':      results[3],
+        'system': results[0],
+        'cpu': results[1],
+        'memory': results[2],
+        'disk': results[3],
         'filesystem': results[4],
-        'network':   results[5],
-        'netstat':   results[6],
+        'network': results[5],
+        'netstat': results[6],
         'processes': results[7],
-        'users':     results[8],
+        'users': results[8],
         'api_calls': results[9],
       };
 
@@ -97,7 +95,6 @@ class CollectorManager {
 
       // Persist to MariaDB asynchronously
       await dbService.storeSnapshot(snapshot);
-
     } catch (e, st) {
       _log.warning('Collection cycle error: $e', e, st);
     }
