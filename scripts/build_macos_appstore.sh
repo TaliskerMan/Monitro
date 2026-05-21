@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Auto-increment version/build number
+python3 "/Users/charlestalk/AntiGravity/workflow-tools/increment_build.py" "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+
 # ==============================================================================
 # Monitro - Mac App Store (MAS) Build Pipeline
 # ==============================================================================
