@@ -69,6 +69,8 @@ class SettingsController extends StateNotifier<AppSettings> {
 
   SettingsController(this._prefs) : super(_loadSettings(_prefs));
 
+  AppSettings get settings => state;
+
   static AppSettings _loadSettings(SharedPreferences prefs) {
     String? apiKey = prefs.getString('apiKey');
     if (apiKey == null) {

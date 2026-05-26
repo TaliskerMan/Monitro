@@ -21,8 +21,18 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
+    - close_sinks
+    - cancel_subscriptions
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+analyzer:
+  errors:
+    dead_code: error
+    unused_element: warning
+    unused_field: warning
+    unused_local_variable: warning
+    deprecated_member_use_from_same_package: error
+    deprecated_member_use: error

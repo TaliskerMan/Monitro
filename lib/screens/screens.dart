@@ -88,8 +88,9 @@ class _ProcessTableState extends State<_ProcessTable> {
     if (s.startsWith('R')) return 'RUN';
     if (s.startsWith('S') || s.startsWith('I')) return 'INACT';
     if (s.startsWith('Z')) return 'Z';
-    if (s.contains('LISTEN'))
+    if (s.contains('LISTEN')) {
       return 'LSTN'; // mostly for netstat, but maybe proc
+    }
     return s; // fallback
   }
 
@@ -562,7 +563,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         const Divider(height: 32),
         const _SectionHeader('About'),
-        const _SettingTile(label: 'Version', value: '1.2.11'),
+        _SettingTile(label: 'Version', value: _version),
         const _SettingTile(label: 'License', value: 'MIT (Chuck Talk)'),
         const _SettingTile(
             label: 'Repository', value: 'github.com/TaliskerMan/Monitro'),
@@ -640,11 +641,12 @@ class _DataScreenState extends State<_DataScreen> {
 
   Future<void> _load() async {
     final data = await widget.loader();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _data = data;
         _loading = false;
       });
+    }
   }
 
   @override

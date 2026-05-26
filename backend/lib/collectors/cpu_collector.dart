@@ -14,10 +14,6 @@ class CpuCollector {
     return {'error': 'Unsupported platform: ${Platform.operatingSystem}'};
   }
 
-  // Hold previous cycles' core & system metrics to compute usage deltas
-  static final Map<String, int> _prevTotal = {};
-  static final Map<String, int> _prevBusy = {};
-
   // -------------------------------------------------------------------------
   // Linux: parse /proc/stat
   // -------------------------------------------------------------------------

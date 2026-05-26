@@ -155,7 +155,7 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
           horizontalInterval: 25,
           getDrawingHorizontalLine: (value) {
             return FlLine(
-              color: AppTheme.surfaceAlt.withOpacity(0.5),
+              color: AppTheme.surfaceAlt.withValues(alpha: 0.5),
               strokeWidth: 1,
             );
           },

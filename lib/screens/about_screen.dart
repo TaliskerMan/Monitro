@@ -37,13 +37,13 @@ class AboutScreen extends StatelessWidget {
                         return Text(
                           'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber} (Linux)',
                           style: TextStyle(
-                              color: AppTheme.onSurface.withOpacity(0.8),
+                              color: AppTheme.onSurface.withValues(alpha: 0.8),
                               fontSize: 14),
                         );
                       }
                       return Text('Loading version...',
                           style: TextStyle(
-                              color: AppTheme.onSurface.withOpacity(0.8),
+                              color: AppTheme.onSurface.withValues(alpha: 0.8),
                               fontSize: 14));
                     },
                   ),
@@ -183,7 +183,7 @@ class _CodeBlock extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceAlt.withOpacity(0.5),
+          color: AppTheme.surfaceAlt.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppTheme.surfaceAlt, width: 1),
         ),

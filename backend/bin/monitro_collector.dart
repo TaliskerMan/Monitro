@@ -57,6 +57,7 @@ Future<void> main(List<String> args) async {
   Logger.root.level = (results['verbose'] as bool) ? Level.ALL : Level.INFO;
 
   final logFile = File('/var/log/monitro-collector.log');
+  // ignore: close_sinks
   IOSink? logSink;
   try {
     logSink = logFile.openWrite(mode: FileMode.append);

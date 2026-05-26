@@ -23,14 +23,14 @@ Future<void> main() async {
   final dbUser = sharedPrefs.getString('mariadbUser');
   if (dbUser != null) {
     // Generate config logic manually without Riverpod
-    final settings = SettingsController(sharedPrefs).state;
+    final settings = SettingsController(sharedPrefs).settings;
     final configPath = await ConfigGenerator.generateConfig(settings);
     await BackendService.start(configPath);
     // Wait for the backend to spin up if needed
   }
 
   // Initialize ApiService key
-  final settings = SettingsController(sharedPrefs).state;
+  final settings = SettingsController(sharedPrefs).settings;
   ApiService.apiKey = settings.apiKey;
 
   runApp(
@@ -43,30 +43,6 @@ Future<void> main() async {
   );
 }
 
-final _router = GoRouter(
-  initialLocation: '/',
-  routes: [
-    ShellRoute(
-      builder: (context, state, child) => AppShell(child: child),
-      routes: [
-        GoRoute(path: '/', builder: (c, s) => const DashboardScreen()),
-        GoRoute(path: '/processes', builder: (c, s) => const ProcessesScreen()),
-        GoRoute(path: '/cpu-cores', builder: (c, s) => const CpuCoresScreen()),
-        GoRoute(
-            path: '/connections', builder: (c, s) => const ConnectionsScreen()),
-        GoRoute(path: '/users', builder: (c, s) => const UsersScreen()),
-        GoRoute(
-            path: '/api-calls', builder: (c, s) => const ApiMonitorScreen()),
-        GoRoute(path: '/alerts', builder: (c, s) => const AlertsScreen()),
-        GoRoute(
-            path: '/service-control',
-            builder: (c, s) => const ServiceControlScreen()),
-        GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
-        GoRoute(path: '/about', builder: (c, s) => const AboutScreen()),
-      ],
-    ),
-  ],
-);
 
 class MonitroApp extends StatelessWidget {
   final bool hasConfig;

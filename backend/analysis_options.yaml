@@ -1,0 +1,14 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    dead_code: error
+    unused_element: warning
+    unused_field: warning
+    unused_local_variable: warning
+    deprecated_member_use_from_same_package: error
+    deprecated_member_use: error
+linter:
+  rules:
+    - close_sinks
+    - cancel_subscriptions
