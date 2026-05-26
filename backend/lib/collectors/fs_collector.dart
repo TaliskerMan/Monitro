@@ -1,4 +1,5 @@
 // Filesystem Usage Collector — cross-platform (df -P)
+import 'dart:developer';
 import 'dart:io';
 
 class FsCollector {
@@ -29,6 +30,7 @@ class FsCollector {
       }
       return {'platform': Platform.operatingSystem, 'mounts': mounts};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -44,6 +46,7 @@ class FsCollector {
       );
       return {'platform': 'windows', 'raw': result.stdout.toString()};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }

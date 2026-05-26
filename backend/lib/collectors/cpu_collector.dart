@@ -1,6 +1,7 @@
 // CPU Collector — cross-platform
 // Reads CPU utilization for macOS, Linux, and Windows.
 
+import 'dart:developer';
 import 'dart:io';
 
 class CpuCollector {
@@ -75,6 +76,7 @@ class CpuCollector {
 
       return {'platform': 'linux', 'busy_pct': rootBusyPct, 'idle_pct': rootIdlePct, 'cores': coreStats};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -130,6 +132,7 @@ class CpuCollector {
         'cores': cores,
       };
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -153,6 +156,7 @@ class CpuCollector {
         'idle_pct': 100.0 - loadPct,
       };
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }

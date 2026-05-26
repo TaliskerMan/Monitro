@@ -1,4 +1,5 @@
 // Network Interface Collector — cross-platform
+import 'dart:developer';
 import 'dart:io';
 
 class NetworkCollector {
@@ -34,6 +35,7 @@ class NetworkCollector {
       }
       return {'platform': 'linux', 'interfaces': interfaces};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -59,6 +61,7 @@ class NetworkCollector {
       }
       return {'platform': 'macos', 'interfaces': interfaces};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -73,6 +76,7 @@ class NetworkCollector {
       );
       return {'platform': 'windows', 'raw': result.stdout.toString()};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }

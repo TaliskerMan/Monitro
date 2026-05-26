@@ -1,4 +1,5 @@
 // Netstat Collector — active TCP/UDP connections, cross-platform
+import 'dart:developer';
 import 'dart:io';
 
 class NetstatCollector {
@@ -23,6 +24,7 @@ class NetstatCollector {
       final summary = _summarize(connections);
       return {'platform': 'linux', 'connections': connections, 'summary': summary};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -38,6 +40,7 @@ class NetstatCollector {
       final summary = _summarize(connections);
       return {'platform': 'macos', 'connections': connections, 'summary': summary};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -52,6 +55,7 @@ class NetstatCollector {
       final summary = _summarize(connections);
       return {'platform': 'windows', 'connections': connections, 'summary': summary};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -103,6 +107,7 @@ class NetstatCollector {
           c['remote_domain'] = '';
         }
       } catch (_) {
+      log('Exception caught', error: _);
         _dnsCache[remoteIp] = '';
         c['remote_domain'] = '';
       }

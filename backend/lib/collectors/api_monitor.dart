@@ -1,6 +1,7 @@
 // API / Outbound HTTP Call Monitor — cross-platform
 // Identifies which local processes are making outbound HTTP/HTTPS connections
 // by correlating netstat/lsof connections on ports 80 and 443 with process names.
+import 'dart:developer';
 import 'dart:io';
 
 class ApiMonitor {
@@ -22,6 +23,7 @@ class ApiMonitor {
       );
       return _parseSsApiCalls(result.stdout.toString(), 'linux');
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -35,6 +37,7 @@ class ApiMonitor {
       );
       return _parseLsofApiCalls(result.stdout.toString(), 'macos');
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -46,6 +49,7 @@ class ApiMonitor {
       );
       return _parseWindowsNetstatApiCalls(result.stdout.toString());
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }

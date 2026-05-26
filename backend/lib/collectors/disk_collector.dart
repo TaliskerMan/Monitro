@@ -1,4 +1,5 @@
 // Disk I/O Collector — cross-platform
+import 'dart:developer';
 import 'dart:io';
 
 class DiskCollector {
@@ -33,6 +34,7 @@ class DiskCollector {
       }
       return {'platform': 'linux', 'devices': devices};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -62,6 +64,7 @@ class DiskCollector {
       }
       return {'platform': 'macos', 'devices': devices};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -76,6 +79,7 @@ class DiskCollector {
       );
       return {'platform': 'windows', 'raw': result.stdout.toString()};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }

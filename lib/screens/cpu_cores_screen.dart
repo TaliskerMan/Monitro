@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:monitro/services/api_service.dart';
@@ -30,7 +31,8 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
     try {
       final data = await ApiService.getCurrentMetrics();
       if (mounted) setState(() { _data = data; _loading = false; });
-    } catch (_) {}
+    } catch (_) {
+      log('Exception caught', error: _);}
   }
 
   @override

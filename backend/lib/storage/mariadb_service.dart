@@ -4,6 +4,7 @@
 // NOTE: mysql_client uses NAMED parameters with :name syntax (Map<String,dynamic>),
 // NOT positional ? placeholders with a List. All execute() calls must pass a Map.
 
+import 'dart:developer';
 import 'package:mysql_client/mysql_client.dart';
 import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
@@ -94,6 +95,7 @@ class MariaDbService {
           }
         }
       } catch (e) {
+      log('Exception caught', error: e);
         _log.warning('Migration warning (may already exist): $e');
       }
     }
@@ -219,6 +221,7 @@ class MariaDbService {
           },
         );
       } catch (e) {
+      log('Exception caught', error: e);
         _log.fine('Process insert error: $e');
       }
     }
@@ -242,6 +245,7 @@ class MariaDbService {
           },
         );
       } catch (e) {
+      log('Exception caught', error: e);
         _log.fine('User session insert error: $e');
       }
     }
@@ -271,6 +275,7 @@ class MariaDbService {
           },
         );
       } catch (e) {
+      log('Exception caught', error: e);
         _log.fine('API call insert error: $e');
       }
     }
@@ -291,6 +296,7 @@ class MariaDbService {
           },
         );
       } catch (e) {
+      log('Exception caught', error: e);
         _log.fine('Metric insert error (${row[0]}): $e');
       }
     }
@@ -327,6 +333,7 @@ class MariaDbService {
       }
       return result.rows.map((r) => r.assoc()).toList();
     } catch (e) {
+      log('Exception caught', error: e);
       _log.warning('queryMetricHistory error: $e');
       return [];
     }
@@ -343,6 +350,7 @@ class MariaDbService {
       );
       return result.rows.map((r) => r.assoc()).toList();
     } catch (e) {
+      log('Exception caught', error: e);
       _log.warning('queryTopProcesses error: $e');
       return [];
     }
@@ -356,6 +364,7 @@ class MariaDbService {
       );
       return result.rows.map((r) => r.assoc()).toList();
     } catch (e) {
+      log('Exception caught', error: e);
       _log.warning('queryRecentAlerts error: $e');
       return [];
     }
@@ -370,6 +379,7 @@ class MariaDbService {
           'DELETE FROM $table WHERE collected_at < DATE_SUB(NOW(), INTERVAL $retentionDays DAY)',
         );
       } catch (e) {
+      log('Exception caught', error: e);
         _log.warning('Retention cleanup error on $table: $e');
       }
     }

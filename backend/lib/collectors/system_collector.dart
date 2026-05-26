@@ -1,4 +1,5 @@
 // System info collector — hostname, uptime, load average
+import 'dart:developer';
 import 'dart:io';
 
 class SystemCollector {
@@ -24,7 +25,8 @@ class SystemCollector {
           load15 = double.tryParse(m.group(3)!);
         }
         uptimeStr = output.trim();
-      } catch (_) {}
+      } catch (_) {
+      log('Exception caught', error: _);}
     }
 
     if (Platform.isWindows) {
@@ -41,7 +43,8 @@ class SystemCollector {
           final dur = Duration(seconds: seconds.toInt());
           uptimeStr = '${dur.inDays}d ${dur.inHours % 24}h ${dur.inMinutes % 60}m';
         }
-      } catch (_) {}
+      } catch (_) {
+      log('Exception caught', error: _);}
     }
 
     return {

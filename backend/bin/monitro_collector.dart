@@ -8,6 +8,7 @@
 //   4. Persists all metrics to MariaDB
 // =============================================================================
 
+import 'dart:developer';
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
@@ -62,6 +63,7 @@ Future<void> main(List<String> args) async {
   try {
     logSink = logFile.openWrite(mode: FileMode.append);
   } catch (e) {
+      log('Exception caught', error: e);
     print(
         'Warning: Cannot open /var/log/monitro-collector.log for writing. Falling back to stdout string.');
   }

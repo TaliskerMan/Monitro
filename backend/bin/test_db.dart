@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:mysql_client/mysql_client.dart';
 import 'package:yaml/yaml.dart';
@@ -25,6 +26,7 @@ Future<void> main() async {
     print('SUCCESS!');
     await conn.close();
   } catch (e) {
+      log('Exception caught', error: e);
     print('ERROR: $e');
   }
 }

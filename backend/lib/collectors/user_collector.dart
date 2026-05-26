@@ -1,4 +1,5 @@
 // User Session Collector — cross-platform
+import 'dart:developer';
 import 'dart:io';
 
 class UserCollector {
@@ -32,6 +33,7 @@ class UserCollector {
         'count':    sessions.length,
       };
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -52,6 +54,7 @@ class UserCollector {
       }
       return {'platform': 'windows', 'sessions': sessions, 'count': sessions.length};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }

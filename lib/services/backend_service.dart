@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart';
@@ -39,6 +40,7 @@ class BackendService {
       });
       return true;
     } catch (e) {
+      log('Exception caught', error: e);
       debugPrint('Failed to start collector: $e');
       return false;
     }
@@ -54,6 +56,7 @@ class BackendService {
       }
       debugPrint('Cleaned up any existing backend collector processes.');
     } catch (e) {
+      log('Exception caught', error: e);
       debugPrint('Failed to clean up old processes: $e');
     }
   }

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
@@ -35,6 +36,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
         });
       }
     } catch (e) {
+      log('Exception caught', error: e);
       // Fall back to journalctl if the log file doesn't exist yet
       try {
         final result = await Process.run('journalctl', [
@@ -54,6 +56,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
           });
         }
       } catch (_) {
+      log('Exception caught', error: _);
         if (mounted) {
           setState(() {
             _logContent = '(Unable to read logs)';
@@ -74,6 +77,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
         });
       }
     } catch (e) {
+      log('Exception caught', error: e);
       if (mounted) {
         setState(() {
           _isServiceOn = false;
@@ -150,6 +154,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
         }
       }
     } catch (e) {
+      log('Exception caught', error: e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

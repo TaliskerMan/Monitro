@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -482,7 +483,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _version = '${info.version}+${info.buildNumber}';
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      log('Exception caught', error: _);}
   }
 
   Future<void> _loadInterfaces() async {
@@ -496,6 +498,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         });
       }
     } catch (e) {
+      log('Exception caught', error: e);
       // Ignore if backend isn't up
     }
   }

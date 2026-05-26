@@ -1,4 +1,5 @@
 // Monitro API Service — talks to the backend collector over localhost HTTPS
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'dart:convert';
@@ -31,6 +32,7 @@ class ApiService {
       final response = await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
       return response.statusCode == 200;
     } catch (e) {
+      log('Exception caught', error: e);
       if (_baseUrl.startsWith('https://')) {
         // Fallback to HTTP and retry
         _baseUrl = 'http://127.0.0.1:8443/api/v1';
@@ -38,6 +40,7 @@ class ApiService {
           final fallbackResponse = await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
           return fallbackResponse.statusCode == 200;
         } catch (_) {
+      log('Exception caught', error: _);
           return false;
         }
       }
@@ -72,6 +75,7 @@ class ApiService {
       }
       return {'error': 'HTTP ${response.statusCode}'};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -100,6 +104,7 @@ class ApiService {
       }
       return {'error': 'HTTP ${response.statusCode}'};
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }

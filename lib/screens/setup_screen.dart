@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -62,6 +63,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         if (mounted) context.go('/');
       }
     } catch (e) {
+      log('Exception caught', error: e);
       setState(() => _error = 'Cannot connect to backend or database. Ensure MariaDB is running and credentials are correct.');
     } finally {
       if (mounted) setState(() => _testing = false);

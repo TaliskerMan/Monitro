@@ -1,6 +1,7 @@
 // Monitro HTTPS API Server
 // Serves the collector's live data to the Flutter UI over localhost HTTPS.
 
+import 'dart:developer';
 import 'dart:io';
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
@@ -139,6 +140,7 @@ class MonitroApiServer {
       _log.warning('Killed process $pid via API request');
       return _json({'status': 'killed', 'pid': pid});
     } catch (e) {
+      log('Exception caught', error: e);
       _log.severe('Failed to kill process $pid', e);
       return Response.internalServerError(body: jsonEncode({'error': e.toString()}));
     }

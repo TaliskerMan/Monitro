@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,6 +56,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         });
       }
     } catch (e) {
+      log('Exception caught', error: e);
       if (mounted) {
         setState(() {
           _error = e.toString();

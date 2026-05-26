@@ -1,6 +1,7 @@
 // Monitro: CollectorManager
 // Orchestrates all platform-aware metric collectors and persists results to MariaDB.
 
+import 'dart:developer';
 import 'dart:async';
 import 'dart:io';
 import 'package:logging/logging.dart';
@@ -96,6 +97,7 @@ class CollectorManager {
       // Persist to MariaDB asynchronously
       await dbService.storeSnapshot(snapshot);
     } catch (e, st) {
+      log('Exception caught', error: e, stackTrace: st);
       _log.warning('Collection cycle error: $e', e, st);
     }
   }

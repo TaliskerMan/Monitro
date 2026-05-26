@@ -55,6 +55,7 @@ class AboutScreen extends StatelessWidget {
           const _SectionHeader('Author Details'),
           const _InfoRow('Copyright', 'Chuck Talk'),
           const _InfoRow('Email', 'chuck@nordheim.online'),
+          const _InfoRow('License', 'MIT License'),
           const SizedBox(height: 32),
           const _SectionHeader('Release Integrity'),
           const _InfoRow('GPG Signature', 'Detached signed (.asc)'),

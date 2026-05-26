@@ -44,6 +44,8 @@ Future<void> main() async {
 }
 
 
+/// The root application widget for Monitro.
+/// Handles routing and overall application state initialization.
 class MonitroApp extends StatelessWidget {
   final bool hasConfig;
   const MonitroApp({super.key, required this.hasConfig});

@@ -1,4 +1,5 @@
 // Memory Collector — cross-platform
+import 'dart:developer';
 import 'dart:io';
 
 class MemoryCollector {
@@ -46,6 +47,7 @@ class MemoryCollector {
         'swap_used_pct':  swapTotalKb > 0 ? (swapUsedKb / swapTotalKb * 100) : 0.0,
       };
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -97,6 +99,7 @@ class MemoryCollector {
         'used_pct':     totalBytes > 0 ? (usedBytes / totalBytes * 100) : 0.0,
       };
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
@@ -126,6 +129,7 @@ class MemoryCollector {
         'used_pct':  totalKb > 0 ? (usedKb / totalKb * 100) : 0.0,
       };
     } catch (e) {
+      log('Exception caught', error: e);
       return {'error': e.toString()};
     }
   }
