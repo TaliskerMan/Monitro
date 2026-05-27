@@ -7,23 +7,17 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.cocoapods.shared-preferences-foundation-privacy</string>
+	<string>shared-preferences-foundation-2.5.6.shared-preferences-foundation.resources</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>shared_preferences_foundation_privacy</string>
+	<string>shared_preferences_foundation_shared_preferences_foundation</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>0.0.1</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>MacOSX</string>
 	</array>
-	<key>CFBundleVersion</key>
-	<string>1</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>

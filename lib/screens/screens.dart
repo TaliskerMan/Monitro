@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../services/preferences_service.dart';
 
+/// Documentation for ProcessesScreen.
 class ProcessesScreen extends StatelessWidget {
   const ProcessesScreen({super.key});
   @override
@@ -44,6 +45,7 @@ class _ProcessTableState extends State<_ProcessTable> {
   }
 
   void _sortData(int columnIndex, bool ascending) {
+    /// Documentation for setState.
     setState(() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
@@ -59,6 +61,7 @@ class _ProcessTableState extends State<_ProcessTable> {
   }
 
   Comparable _getSortValue(Map p, int columnIndex) {
+    /// Documentation for switch.
     switch (columnIndex) {
       case 0:
         return p['pid'] as int? ?? 0;
@@ -118,8 +121,10 @@ class _ProcessTableState extends State<_ProcessTable> {
       ),
     );
 
+    /// Documentation for if.
     if (confirmed == true) {
       final res = await ApiService.killProcess(pid);
+      /// Documentation for if.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(res['error'] ?? 'Process $pid killed.'),
@@ -248,6 +253,7 @@ class _ConnectionTables extends StatelessWidget {
   }
 
   Widget _buildTable(List connections, {required bool isInbound}) {
+    /// Documentation for if.
     if (connections.isEmpty) {
       return const Center(
           child:
@@ -284,6 +290,7 @@ class _ConnectionTables extends StatelessWidget {
             final remote = c['remote']?.toString() ?? '';
             final state = c['state']?.toString() ?? '';
 
+            /// Documentation for if.
             if (isInbound) {
               return DataRow(cells: [
                 DataCell(Text(process.toString(),
@@ -335,6 +342,7 @@ class _UserList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// Documentation for if.
     if (sessions.isEmpty) {
       return const Center(
           child: Text('No active sessions',
@@ -377,6 +385,7 @@ class _ApiCallerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// Documentation for if.
     if (callers.isEmpty) {
       return const Center(
           child: Text('No outbound HTTP connections detected',
@@ -422,6 +431,7 @@ class _AlertList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// Documentation for if.
     if (alerts.isEmpty) {
       return const Center(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -478,7 +488,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _loadVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
+      /// Documentation for if.
       if (mounted) {
+        /// Documentation for setState.
         setState(() {
           _version = '${info.version}+${info.buildNumber}';
         });
@@ -492,7 +504,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final metrics = await ApiService.getCurrentMetrics();
       final netstat = metrics['netstat'] as Map?;
       final interfacesRaw = netstat?['interfaces'] as Map? ?? {};
+      /// Documentation for if.
       if (mounted) {
+        /// Documentation for setState.
         setState(() {
           _interfaces = ['All', ...interfacesRaw.keys.cast<String>()];
         });
@@ -644,7 +658,9 @@ class _DataScreenState extends State<_DataScreen> {
 
   Future<void> _load() async {
     final data = await widget.loader();
+    /// Documentation for if.
     if (mounted) {
+      /// Documentation for setState.
       setState(() {
         _data = data;
         _loading = false;

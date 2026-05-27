@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../theme/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+/// Documentation for AboutScreen.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
@@ -33,6 +35,7 @@ class AboutScreen extends StatelessWidget {
                   FutureBuilder<PackageInfo>(
                     future: PackageInfo.fromPlatform(),
                     builder: (context, snapshot) {
+                      /// Documentation for if.
                       if (snapshot.hasData) {
                         return Text(
                           'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber} (Linux)',
@@ -56,6 +59,7 @@ class AboutScreen extends StatelessWidget {
           const _InfoRow('Copyright', 'Chuck Talk'),
           const _InfoRow('Email', 'chuck@nordheim.online'),
           const _InfoRow('License', 'MIT License'),
+          const _LinkRow('Source Code', 'https://github.com/TaliskerMan/Monitro'),
           const SizedBox(height: 32),
           const _SectionHeader('Release Integrity'),
           const _InfoRow('GPG Signature', 'Detached signed (.asc)'),
@@ -161,6 +165,36 @@ class _InfoRow extends StatelessWidget {
         ),
       );
 }
+
+class _LinkRow extends StatelessWidget {
+  final String label, url;
+  const _LinkRow(this.label, this.url);
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+                width: 140,
+                child: Text(label,
+                    style:
+                        const TextStyle(color: AppTheme.muted, fontSize: 14))),
+            Expanded(
+                child: InkWell(
+                  onTap: () => launchUrl(Uri.parse(url)),
+                  child: Text(url,
+                      style: const TextStyle(
+                          color: Colors.blue,
+                          fontSize: 14,
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w500)),
+                )),
+          ],
+        ),
+      );
+}
+
 
 class _CodeBlockHeader extends StatelessWidget {
   final String text;

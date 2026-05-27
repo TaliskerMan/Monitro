@@ -1,6 +1,7 @@
 // Monitro App Theme — Dark, modern, monitoring aesthetic
 import 'package:flutter/material.dart';
 
+/// Documentation for AppTheme.
 class AppTheme {
   AppTheme._();
 

@@ -8,6 +8,7 @@ import '../services/backend_service.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
+/// Documentation for SetupScreen.
 class SetupScreen extends ConsumerStatefulWidget {
   const SetupScreen({super.key});
 
@@ -27,6 +28,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   bool _obscurePass = true; // State for password visibility toggle
 
   Future<void> _testAndSave() async {
+    /// Documentation for setState.
     setState(() {
       _testing = true;
       _error = null;

@@ -5,6 +5,7 @@ import 'package:http/io_client.dart';
 import 'dart:convert';
 import 'dart:io';
 
+/// Documentation for ApiService.
 class ApiService {
   static String? apiKey;
   static String _baseUrl = 'https://127.0.0.1:8443/api/v1';
@@ -27,6 +28,7 @@ class ApiService {
     return IOClient(ioClient);
   }
 
+  /// Documentation for isBackendHealthy.
   static Future<bool> isBackendHealthy() async {
     try {
       final response = await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
@@ -70,6 +72,7 @@ class ApiService {
   static Future<Map<String, dynamic>> killProcess(int pid) async {
     try {
       final response = await _client.delete(Uri.parse('$_baseUrl/processes/$pid'), headers: _headers);
+      /// Documentation for if.
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
@@ -99,6 +102,7 @@ class ApiService {
   static Future<Map<String, dynamic>> _get(String path) async {
     try {
       final response = await _client.get(Uri.parse('$_baseUrl$path'), headers: _headers);
+      /// Documentation for if.
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }

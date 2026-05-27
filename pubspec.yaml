@@ -1,7 +1,7 @@
 name: monitro
 description: "Cross-platform local system observability platform — Flutter UI with Dart backend, MariaDB storage, and 4096-bit SSL."
 publish_to: "none"
-version: 1.2.13+5
+version: 1.2.13+9
 
 environment:
   sdk: ">=3.2.0 <4.0.0"
@@ -45,6 +45,7 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.1
   package_info_plus: ^9.0.0
+  url_launcher: ^6.2.6
 
 dev_dependencies:
   flutter_test:

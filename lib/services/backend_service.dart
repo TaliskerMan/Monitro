@@ -4,9 +4,11 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
+/// Documentation for BackendService.
 class BackendService {
   static Process? _process;
 
+  /// Documentation for start.
   static Future<bool> start(String configPath) async {
     if (_process != null) return true; // Already running locally mapped by Flutter
     
@@ -48,6 +50,7 @@ class BackendService {
 
   static Future<void> _killExistingProcess() async {
     try {
+      /// Documentation for if.
       if (Platform.isWindows) {
         await Process.run('powershell', ['-Command', 'Stop-Process -Name monitro_collector -Force -ErrorAction SilentlyContinue']);
         await Process.run('powershell', ['-Command', 'Stop-Process -Name monitro_collector.exe -Force -ErrorAction SilentlyContinue']);
@@ -61,7 +64,9 @@ class BackendService {
     }
   }
 
+  /// Documentation for stop.
   static void stop() {
+    /// Documentation for if.
     if (_process != null) {
       _process!.kill();
       _process = null;

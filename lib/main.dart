@@ -21,6 +21,7 @@ Future<void> main() async {
 
   // If already configured, start backend before runApp
   final dbUser = sharedPrefs.getString('mariadbUser');
+  /// Documentation for if.
   if (dbUser != null) {
     // Generate config logic manually without Riverpod
     final settings = SettingsController(sharedPrefs).settings;

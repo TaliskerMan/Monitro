@@ -73,6 +73,7 @@ class SettingsController extends StateNotifier<AppSettings> {
 
   static AppSettings _loadSettings(SharedPreferences prefs) {
     String? apiKey = prefs.getString('apiKey');
+    /// Documentation for if.
     if (apiKey == null) {
       final random = Random.secure();
       final values = List<int>.generate(32, (i) => random.nextInt(256));
@@ -93,16 +94,19 @@ class SettingsController extends StateNotifier<AppSettings> {
     );
   }
 
+  /// Documentation for setNetworkInterface.
   void setNetworkInterface(String interface) {
     _prefs.setString('selectedNetworkInterface', interface);
     state = state.copyWith(selectedNetworkInterface: interface);
   }
 
+  /// Documentation for togglePerCoreCpu.
   void togglePerCoreCpu(bool show) {
     _prefs.setBool('showPerCoreCpu', show);
     state = state.copyWith(showPerCoreCpu: show);
   }
 
+  /// Documentation for setRefreshInterval.
   void setRefreshInterval(int seconds) {
     _prefs.setInt('refreshIntervalSeconds', seconds);
     state = state.copyWith(refreshIntervalSeconds: seconds);
@@ -130,6 +134,7 @@ class SettingsController extends StateNotifier<AppSettings> {
     );
   }
 
+  /// Documentation for setApiKey.
   void setApiKey(String key) {
     _prefs.setString('apiKey', key);
     state = state.copyWith(apiKey: key);

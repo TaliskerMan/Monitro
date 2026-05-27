@@ -3,6 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'preferences_service.dart';
 
+/// Documentation for ConfigGenerator.
 class ConfigGenerator {
   static String _getCertsDir() {
     final exeLoc = Platform.resolvedExecutable;
@@ -17,6 +18,7 @@ class ConfigGenerator {
     return p.join(Directory.current.path, 'certs');
   }
 
+  /// Documentation for generateConfig.
   static Future<String> generateConfig(AppSettings settings) async {
     final supportDir = await getApplicationSupportDirectory();
     final configDir = Directory(p.join(supportDir.path, 'config'));

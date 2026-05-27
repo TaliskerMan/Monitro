@@ -16,6 +16,30 @@
 		<data>
 		dahI/MLw5nMtaCQUc0WDZEvFJsA=
 		</data>
+		<key>Resources/package_info_plus_package_info_plus.bundle/Contents/Info.plist</key>
+		<data>
+		vCd8XPIijb4paJFDzxW5Dd/C4Pk=
+		</data>
+		<key>Resources/package_info_plus_package_info_plus.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
+		<data>
+		Wg6BXNysAQYRmcWWiQCdEQn4KPI=
+		</data>
+		<key>Resources/shared_preferences_foundation_shared_preferences_foundation.bundle/Contents/Info.plist</key>
+		<data>
+		8SEhNWOc2LJGXOoV/ICakO9GlGg=
+		</data>
+		<key>Resources/shared_preferences_foundation_shared_preferences_foundation.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
+		<data>
+		6uLTlq7fgHHWA8emYDf4ImHC+AY=
+		</data>
+		<key>Resources/url_launcher_macos_url_launcher_macos.bundle/Contents/Info.plist</key>
+		<data>
+		+pfpncRuqkCDWxE8tXAO1g+YgHU=
+		</data>
+		<key>Resources/url_launcher_macos_url_launcher_macos.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
+		<data>
+		Wg6BXNysAQYRmcWWiQCdEQn4KPI=
+		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
@@ -23,7 +47,7 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			+Y8RLmGu+B7tsFXz+/9noQpTi5M=
+			bcWdzUtgwq6npehpLab5jof2ZG4=
 			</data>
 			<key>requirement</key>
 			<string>identifier "io.flutter.flutter.app" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "89B5GL8WMK"</string>
@@ -32,7 +56,7 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			FIp5p+U8xdsAmghQ0iBL3HocVqc=
+			T0DDgfoBACNYJhcS4neMPayW35k=
 			</data>
 			<key>requirement</key>
 			<string>identifier "io.flutter.flutter-macos" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "89B5GL8WMK"</string>
@@ -41,28 +65,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			VD3WPCYT4kY9keBQVxtTZAJaOFg=
+			iyVWcieWxj9MS7B4GQl3oqk3RtQ=
 			</data>
 			<key>requirement</key>
 			<string>identifier "io.flutter.flutter.native-assets.objective-c" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "89B5GL8WMK"</string>
-		</dict>
-		<key>Frameworks/package_info_plus.framework</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			/shY1/r6DW4BD7bfbbJ8d2HTAYI=
-			</data>
-			<key>requirement</key>
-			<string>identifier "org.cocoapods.package-info-plus" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "89B5GL8WMK"</string>
-		</dict>
-		<key>Frameworks/shared_preferences_foundation.framework</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			Pi5yKdSNgF1EoFDx/7BHa49hHVs=
-			</data>
-			<key>requirement</key>
-			<string>identifier "org.cocoapods.shared-preferences-foundation" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "89B5GL8WMK"</string>
 		</dict>
 		<key>Resources/AppIcon.icns</key>
 		<dict>
@@ -83,6 +89,48 @@
 			<key>hash2</key>
 			<data>
 			O08lxEHAyoNuYGU6NstZgn54Us5nnaElMX1VJFXiW9U=
+			</data>
+		</dict>
+		<key>Resources/package_info_plus_package_info_plus.bundle/Contents/Info.plist</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			AnCSnDaTnj7eVFWiwIdoD/aWOcoD0G/X3xd0N1b0swg=
+			</data>
+		</dict>
+		<key>Resources/package_info_plus_package_info_plus.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			IE0DWojqsigbPZFPRseWdmrnjjy4JTdxGSjcqeKNu7g=
+			</data>
+		</dict>
+		<key>Resources/shared_preferences_foundation_shared_preferences_foundation.bundle/Contents/Info.plist</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			B9YzfmI3fW9ICNj8Kt5w0WKGk8UY8cGmCpzdudH6NxA=
+			</data>
+		</dict>
+		<key>Resources/shared_preferences_foundation_shared_preferences_foundation.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			BWQouTi9VwGKYAGdFcPB7i+nJ/I2h1mLu9k0hIsYCxo=
+			</data>
+		</dict>
+		<key>Resources/url_launcher_macos_url_launcher_macos.bundle/Contents/Info.plist</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			bnEsq3XBV8sZzcGprK3j47qjsxModG3JPDqA+a52GEI=
+			</data>
+		</dict>
+		<key>Resources/url_launcher_macos_url_launcher_macos.bundle/Contents/Resources/PrivacyInfo.xcprivacy</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			IE0DWojqsigbPZFPRseWdmrnjjy4JTdxGSjcqeKNu7g=
 			</data>
 		</dict>
 	</dict>

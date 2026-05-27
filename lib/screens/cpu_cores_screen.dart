@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:monitro/services/api_service.dart';
 import 'package:monitro/theme/app_theme.dart';
 
+/// Documentation for CpuCoresScreen.
 class CpuCoresScreen extends StatefulWidget {
   const CpuCoresScreen({super.key});
 
@@ -37,6 +38,7 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
 
   @override
   Widget build(BuildContext context) {
+    /// Documentation for if.
     if (_loading) {
       return const Scaffold(
         backgroundColor: AppTheme.surface,
@@ -74,6 +76,7 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
   Widget _buildBarChart(List cores) {
     final barGroups = <BarChartGroupData>[];
     
+    /// Documentation for for.
     for (int i = 0; i < cores.length; i++) {
       final core = cores[i] as Map? ?? {};
       final rawPct = core['busy_pct'];

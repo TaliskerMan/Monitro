@@ -6,26 +6,18 @@
 	<string>25F71</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
-	<key>CFBundleExecutable</key>
-	<string>shared_preferences_foundation</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.cocoapods.shared-preferences-foundation</string>
+	<string>url-launcher-macos-3.2.5.url-launcher-macos.resources</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>shared_preferences_foundation</string>
+	<string>url_launcher_macos_url_launcher_macos</string>
 	<key>CFBundlePackageType</key>
-	<string>FMWK</string>
-	<key>CFBundleShortVersionString</key>
-	<string>0.0.1</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
+	<string>BNDL</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>MacOSX</string>
 	</array>
-	<key>CFBundleVersion</key>
-	<string>1</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
