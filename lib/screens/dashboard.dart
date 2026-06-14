@@ -7,8 +7,12 @@ import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../services/preferences_service.dart';
 
-/// Documentation for DashboardScreen.
+/// State-aware widget presenting system metrics overview.
+///
+/// Subscribes to settings notifications to schedule a periodic Timer that loads
+/// CPU load, memory limits, and network packets from the daemon collector API.
 class DashboardScreen extends ConsumerStatefulWidget {
+  /// Creates a [DashboardScreen] instance.
   const DashboardScreen({super.key});
 
   @override
@@ -33,6 +37,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     _setupTimer();
   }
 
+  /// Initialize or reconstruct the metrics poll schedule based on settings preferences.
   void _setupTimer() {
     _refreshTimer?.cancel();
     final interval = ref.read(settingsProvider).refreshIntervalSeconds;
@@ -46,12 +51,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     super.dispose();
   }
 
+  /// Query backend API endpoints to retrieve overall system resource load tables.
   Future<void> _loadMetrics() async {
     try {
       final data = await ApiService.getCurrentMetrics();
-      /// Documentation for if.
       if (mounted) {
-        /// Documentation for setState.
         setState(() {
           _metrics = data;
           _loading = false;
@@ -60,9 +64,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       }
     } catch (e) {
       log('Exception caught', error: e);
-      /// Documentation for if.
       if (mounted) {
-        /// Documentation for setState.
         setState(() {
           _error = e.toString();
           _loading = false;
@@ -75,7 +77,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     // Rebuild timer if interval changed
     ref.listen<AppSettings>(settingsProvider, (oldVal, newVal) {
-      /// Documentation for if.
       if (oldVal?.refreshIntervalSeconds != newVal.refreshIntervalSeconds) {
         _setupTimer();
       }
@@ -105,6 +106,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  /// Render error states showing manual collector execution commands.
   Widget _buildError() {
     return Center(
       child: Column(
@@ -133,6 +135,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  /// Build the dashboard grid listing cards representing CPU, RAM, Load, and Interfaces.
   Widget _buildDashboard() {
     final system = _metrics?['system'] as Map?;
     final cpu = _metrics?['cpu'] as Map?;
@@ -147,7 +150,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     // CPU Cards
     if (settings.showPerCoreCpu && cpu?['cores'] != null) {
       final cores = cpu!['cores'] as List;
-      /// Documentation for for.
       for (int i = 0; i < cores.length; i++) {
         final corePct = cores[i]['busy_pct'];
         cards.add(_MetricCard(
@@ -189,7 +191,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     // Network Interface filtering
     final interfaces = netstat?['interfaces'] as Map? ?? {};
-    /// Documentation for if.
     if (settings.selectedNetworkInterface == 'All') {
       cards.add(_MetricCard(
         title: 'Connections',
@@ -225,7 +226,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         children: [
           if (system != null) _buildSystemHeader(system),
           const SizedBox(height: 20),
-          /// Documentation for LayoutBuilder.
           LayoutBuilder(builder: (ctx, constraints) {
             final cols = constraints.maxWidth > 1200
                 ? 5
@@ -249,6 +249,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  /// Render the system hostname, OS specifications, and uptime headers.
   Widget _buildSystemHeader(Map system) {
     return Row(children: [
       const Icon(Icons.computer, color: AppTheme.accent, size: 20),
@@ -283,6 +284,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ]);
   }
 
+  /// Resolve color codes matching load percentages.
   Color _pctColor(dynamic val) {
     final pct = (val as num?)?.toDouble() ?? 0;
     if (pct >= 90) return AppTheme.danger;
@@ -291,6 +293,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 }
 
+/// A card representation containing a title, value, and icon with metric status colors.
 class _MetricCard extends StatelessWidget {
   final String title;
   final String value;
@@ -337,3 +340,4 @@ class _MetricCard extends StatelessWidget {
     );
   }
 }
+

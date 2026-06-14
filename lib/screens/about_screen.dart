@@ -3,8 +3,12 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Documentation for AboutScreen.
+/// Screen widget displaying program metadata, licensing terms, and local DB configurations.
+///
+/// Includes visual code block instructions describing the manual installation and configuration
+/// steps needed to initialize MariaDB to store statistics logs.
 class AboutScreen extends StatelessWidget {
+  /// Creates an [AboutScreen] instance.
   const AboutScreen({super.key});
 
   @override
@@ -35,7 +39,6 @@ class AboutScreen extends StatelessWidget {
                   FutureBuilder<PackageInfo>(
                     future: PackageInfo.fromPlatform(),
                     builder: (context, snapshot) {
-                      /// Documentation for if.
                       if (snapshot.hasData) {
                         return Text(
                           'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber} (Linux)',
@@ -87,7 +90,7 @@ class AboutScreen extends StatelessWidget {
           const SizedBox(height: 16),
           const _CodeBlockHeader('2. Secure Installation'),
           const _CodeBlock(
-              'sudo mariadb-secure-installation\n# Follow the prompts to configure root access securely.'),
+               'sudo mariadb-secure-installation\n# Follow the prompts to configure root access securely.'),
           const SizedBox(height: 16),
           const _CodeBlockHeader('3. Database Configuration'),
           const Padding(
@@ -126,6 +129,7 @@ EXIT;'''),
   }
 }
 
+/// Renders a section header label with accent colors.
 class _SectionHeader extends StatelessWidget {
   final String text;
   const _SectionHeader(this.text);
@@ -141,6 +145,7 @@ class _SectionHeader extends StatelessWidget {
       );
 }
 
+/// Renders a horizontal label-value text pair.
 class _InfoRow extends StatelessWidget {
   final String label, value;
   const _InfoRow(this.label, this.value);
@@ -166,6 +171,7 @@ class _InfoRow extends StatelessWidget {
       );
 }
 
+/// Renders an interactive link row that triggers launchUrl calls.
 class _LinkRow extends StatelessWidget {
   final String label, url;
   const _LinkRow(this.label, this.url);
@@ -195,7 +201,7 @@ class _LinkRow extends StatelessWidget {
       );
 }
 
-
+/// Title element preceding code blocks.
 class _CodeBlockHeader extends StatelessWidget {
   final String text;
   const _CodeBlockHeader(this.text);
@@ -210,6 +216,7 @@ class _CodeBlockHeader extends StatelessWidget {
       );
 }
 
+/// Visual code container block rendering pre-formatted selectable text.
 class _CodeBlock extends StatelessWidget {
   final String code;
   const _CodeBlock(this.code);
@@ -229,3 +236,4 @@ class _CodeBlock extends StatelessWidget {
         ),
       );
 }
+

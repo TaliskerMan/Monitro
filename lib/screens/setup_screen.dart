@@ -8,8 +8,12 @@ import '../services/backend_service.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
-/// Documentation for SetupScreen.
+/// Screen widget hosting the initial setup credentials wizard.
+///
+/// Prompts users to configure host addresses, port binds, username, database names,
+/// and credentials targeting the MariaDB storage.
 class SetupScreen extends ConsumerStatefulWidget {
+  /// Creates a [SetupScreen] instance.
   const SetupScreen({super.key});
 
   @override
@@ -27,8 +31,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   String? _error;
   bool _obscurePass = true; // State for password visibility toggle
 
+  /// Test connection parameters by writing a temporary config file and starting the backend.
   Future<void> _testAndSave() async {
-    /// Documentation for setState.
     setState(() {
       _testing = true;
       _error = null;
@@ -46,16 +50,16 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     );
     final settings = ref.read(settingsProvider);
 
-    // Generate config
+    // Generate configuration file
     final configPath = await ConfigGenerator.generateConfig(settings);
 
-    // Start backend
+    // Start background collector process
     await BackendService.start(configPath);
     
     // Wait for the backend to spin up and connect to MariaDB
     await Future.delayed(const Duration(seconds: 3));
 
-    // Test API
+    // Test API health
     try {
       final metrics = await ApiService.getCurrentMetrics();
       if (metrics.containsKey('error')) {
@@ -144,3 +148,4 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     );
   }
 }
+

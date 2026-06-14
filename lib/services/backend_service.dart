@@ -4,11 +4,20 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
-/// Documentation for BackendService.
+/// Control service managing the lifecycle of the local Monitro daemon collector.
+///
+/// Starts, monitors, and stops the `monitro_collector` subprocess, piping its stdout/stderr
+/// logs to local files, and handles windows/unix process cleanup signals.
 class BackendService {
   static Process? _process;
 
-  /// Documentation for start.
+  /// Boot the backend daemon collector if not already running.
+  ///
+  /// Checks local API health first. If not listening, kills any zombie processes and spawns
+  /// the system-specific collector executable, passing the config YAML path arguments.
+  ///
+  /// Args:
+  ///   configPath: Path to the generated YAML configuration file.
   static Future<bool> start(String configPath) async {
     if (_process != null) return true; // Already running locally mapped by Flutter
     
@@ -48,9 +57,9 @@ class BackendService {
     }
   }
 
+  /// Clean up existing collector processes on the system to avoid address bind errors.
   static Future<void> _killExistingProcess() async {
     try {
-      /// Documentation for if.
       if (Platform.isWindows) {
         await Process.run('powershell', ['-Command', 'Stop-Process -Name monitro_collector -Force -ErrorAction SilentlyContinue']);
         await Process.run('powershell', ['-Command', 'Stop-Process -Name monitro_collector.exe -Force -ErrorAction SilentlyContinue']);
@@ -64,9 +73,8 @@ class BackendService {
     }
   }
 
-  /// Documentation for stop.
+  /// Stop the background daemon subprocess.
   static void stop() {
-    /// Documentation for if.
     if (_process != null) {
       _process!.kill();
       _process = null;
@@ -74,6 +82,7 @@ class BackendService {
     }
   }
 
+  /// Resolve the absolute path to the collector binary based on package structure and platform OS.
   static String _getCollectorPath() {
     final exeLoc = Platform.resolvedExecutable;
     debugPrint('App Executable: $exeLoc');
@@ -99,3 +108,4 @@ class BackendService {
     return p.join(Directory.current.path, 'backend', 'monitro_collector');
   }
 }
+

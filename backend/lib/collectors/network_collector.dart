@@ -2,7 +2,13 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Collector for querying and parsing network interface metrics.
+///
+/// Gathers bandwidth usage, packet counts, errors, and drop statistics across
+/// physical and virtual interfaces on Linux (via `/proc/net/dev`), macOS (via `netstat -ib`),
+/// and Windows (via PowerShell NetAdapter cmdlets).
 class NetworkCollector {
+  /// Gathers active network interface metrics and throughput states based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isLinux) return _collectLinux();
     if (Platform.isMacOS) return _collectMacOS();

@@ -20,6 +20,11 @@ import 'package:monitro_collector/storage/mariadb_service.dart';
 
 final _log = Logger('monitro_collector');
 
+/// Executable main function that initializes and runs the background collector service.
+///
+/// Parses arguments to find `monitro.yaml`, configures logging sinks (stdout and log files),
+/// instantiates MariaDbService connection pools, launches metric collection loops,
+/// and starts the HTTPS API server. Resolves graceful shutdowns on system signals.
 Future<void> main(List<String> args) async {
   // ---------------------------------------------------------------------------
   // Parse command-line arguments
@@ -165,3 +170,4 @@ Future<void> main(List<String> args) async {
     });
   }
 }
+

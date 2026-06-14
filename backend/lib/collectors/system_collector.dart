@@ -2,7 +2,12 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Collector for querying and parsing general host system information.
+///
+/// Gathers global parameters including local hostname, OS types, kernel version,
+/// system load averages (1/5/15 minute buckets), and system uptime durations.
 class SystemCollector {
+  /// Gathers high-level system identity and load metrics based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     final hostname = Platform.localHostname;
     final os = Platform.operatingSystem;

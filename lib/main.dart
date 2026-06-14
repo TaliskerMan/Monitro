@@ -15,22 +15,26 @@ import 'services/config_generator.dart';
 import 'services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Main execution entrypoint for the Monitro desktop frontend application.
+/// 
+/// Initializes SharedPreferences storage, performs early configuration verification
+/// to boot the collector service if available, and runs the root MaterialApp.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final sharedPrefs = await SharedPreferences.getInstance();
 
-  // If already configured, start backend before runApp
+  // If already configured, boot the system metrics collection daemon
   final dbUser = sharedPrefs.getString('mariadbUser');
-  /// Documentation for if.
   if (dbUser != null) {
-    // Generate config logic manually without Riverpod
+    // Read the settings from local shared preferences storage
     final settings = SettingsController(sharedPrefs).settings;
+    // Build a collector configuration file with details from settings
     final configPath = await ConfigGenerator.generateConfig(settings);
+    // Boot the collector service daemon using the built config path
     await BackendService.start(configPath);
-    // Wait for the backend to spin up if needed
   }
 
-  // Initialize ApiService key
+  // Initialize the ApiService base security headers
   final settings = SettingsController(sharedPrefs).settings;
   ApiService.apiKey = settings.apiKey;
 
@@ -48,7 +52,10 @@ Future<void> main() async {
 /// The root application widget for Monitro.
 /// Handles routing and overall application state initialization.
 class MonitroApp extends StatelessWidget {
+  /// Whether the database parameters have been successfully configured.
   final bool hasConfig;
+
+  /// Creates a [MonitroApp] instance.
   const MonitroApp({super.key, required this.hasConfig});
 
   @override
@@ -98,9 +105,12 @@ class MonitroApp extends StatelessWidget {
   }
 }
 
-/// App shell with sidebar navigation
+/// Scaffold layout housing the navigation sidebar and content space.
 class AppShell extends StatelessWidget {
+  /// Active nested subpage layout displayed inside the main content frame.
   final Widget child;
+
+  /// Creates an [AppShell] instance.
   const AppShell({super.key, required this.child});
 
   @override
@@ -144,7 +154,7 @@ class AppShell extends StatelessWidget {
               NavigationRailDestination(
                 icon: Icon(Icons.bar_chart_outlined),
                 selectedIcon: Icon(Icons.bar_chart),
-                label: Text('CPU Cores'),
+                label: Text('Cpu Cores'),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.cable_outlined),
@@ -190,6 +200,7 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  /// List of absolute path routing endpoints matching sidebar indexes.
   List<String> get _navRoutes => [
         '/',
         '/processes',
@@ -203,12 +214,15 @@ class AppShell extends StatelessWidget {
         '/about'
       ];
 
+  /// Find sidebar destination index corresponding to the current active location path.
   int _navIndex(String location) {
     final i = _navRoutes.indexOf(location);
     return i < 0 ? 0 : i;
   }
 
+  /// Route navigation helper.
   void _navigate(BuildContext context, int index) {
     context.go(_navRoutes[index]);
   }
 }
+

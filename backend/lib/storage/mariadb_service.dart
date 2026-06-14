@@ -12,15 +12,24 @@ import 'dart:io';
 
 final _log = Logger('MariaDbService');
 
+/// MariaDB database service layer.
+///
+/// Coordinates connection lifecycles, schema structure migrations, and
+/// persistent time-series metrics logging routines for system state snapshots.
 class MariaDbService {
+  /// YAML dynamic configuration mapping database connection parameters.
   final YamlMap config;
+
+  /// Internal MySQL active connection reference pool.
   MySQLConnection? _conn;
 
+  /// Instantiates a new [MariaDbService] with configuration directives.
   MariaDbService(this.config);
 
   // ---------------------------------------------------------------------------
   // Connection
   // ---------------------------------------------------------------------------
+  /// Connects to the MariaDB server using parameters specified in the configuration.
   Future<void> connect() async {
     _conn = await MySQLConnection.createConnection(
       host:         config['host']     as String? ?? '127.0.0.1',
@@ -34,6 +43,7 @@ class MariaDbService {
     _log.info('Connected to MariaDB at ${config['host']}:${config['port']}');
   }
 
+  /// Closes the active MySQL/MariaDB database connection pool.
   Future<void> disconnect() async {
     await _conn?.close();
     _log.info('MariaDB connection closed.');
@@ -42,6 +52,8 @@ class MariaDbService {
   // ---------------------------------------------------------------------------
   // Schema Migration — reads SQL files and runs each statement
   // ---------------------------------------------------------------------------
+  /// Performs database schema migrations by identifying, parsing, and running
+  /// all `.sql` migration files located inside the application installation directories.
   Future<void> runMigrations() async {
     _log.info('Running schema migrations...');
 
@@ -105,6 +117,10 @@ class MariaDbService {
   // ---------------------------------------------------------------------------
   // Store Snapshot — called every collection cycle
   // ---------------------------------------------------------------------------
+  /// Persists a system collector state snapshot packet to MariaDB tables.
+  ///
+  /// Dispatches sub-queries to log CPU, Memory, Disk, Netstat, processes, users,
+  /// and API usage calls associated with the given timestamp.
   Future<void> storeSnapshot(Map<String, dynamic> snapshot) async {
     if (_conn == null) return;
     final ts = snapshot['collected_at'] as String;
@@ -306,6 +322,9 @@ class MariaDbService {
   // Query helpers — used by the API server
   // ---------------------------------------------------------------------------
 
+  /// Queries historical metrics logged in the database within a minutes threshold.
+  ///
+  /// Filters rows matching [metricName] and an optional [label].
   Future<List<Map<String, dynamic>>> queryMetricHistory({
     required String metricName,
     String? label,
@@ -339,6 +358,7 @@ class MariaDbService {
     }
   }
 
+  /// Queries recently captured system process details, ordered by CPU utilization.
   Future<List<Map<String, dynamic>>> queryTopProcesses({int limit = 20}) async {
     if (_conn == null) return [];
     try {
@@ -356,6 +376,7 @@ class MariaDbService {
     }
   }
 
+  /// Queries recent warning alert events triggered on the node.
   Future<List<Map<String, dynamic>>> queryRecentAlerts({int limit = 50}) async {
     if (_conn == null) return [];
     try {
@@ -370,6 +391,7 @@ class MariaDbService {
     }
   }
 
+  /// Deletes logs older than [retentionDays] to prevent disk overflow.
   Future<void> runRetentionCleanup(int retentionDays) async {
     _log.info('Running retention cleanup (keeping last $retentionDays days)...');
     final tables = ['metrics', 'processes', 'connections', 'user_sessions', 'api_calls'];

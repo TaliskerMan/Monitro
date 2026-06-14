@@ -3,27 +3,41 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'dart:convert';
 
-// Provides the initialized instance of SharedPreferences
+/// Provider exposing the initialized SharedPreferences database instance.
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('sharedPreferencesProvider must be overridden in main.dart');
 });
 
-// Settings state object
+/// Immutable configuration data model storing application preferences and database configs.
 class AppSettings {
+  /// Selected physical or virtual network interface name (e.g. eth0, wlan0).
   final String selectedNetworkInterface;
+
+  /// Whether to render resource graphs per core rather than an aggregated sum.
   final bool showPerCoreCpu;
+
+  /// Time interval in seconds between metric polls.
   final int refreshIntervalSeconds;
   
-  // MariaDB config
+  /// Target host address of the MariaDB relational metrics store.
   final String? mariadbHost;
+
+  /// Listening port of the MariaDB metrics store.
   final int? mariadbPort;
+
+  /// Username utilized to authenticate database mutations.
   final String? mariadbUser;
+
+  /// Password credentials corresponding to the database user.
   final String? mariadbPass;
+
+  /// Target database namespace.
   final String? mariadbDb;
 
-  // Security
+  /// Secure API authorization bearer key.
   final String? apiKey;
 
+  /// Creates an [AppSettings] instance.
   const AppSettings({
     this.selectedNetworkInterface = 'All',
     this.showPerCoreCpu = false,
@@ -36,8 +50,10 @@ class AppSettings {
     this.apiKey,
   });
 
+  /// Check whether the database configs are fully populated.
   bool get hasDatabaseConfig => mariadbHost != null && mariadbUser != null && mariadbPass != null;
 
+  /// Create a cloned instance with modified properties.
   AppSettings copyWith({
     String? selectedNetworkInterface,
     bool? showPerCoreCpu,
@@ -63,17 +79,21 @@ class AppSettings {
   }
 }
 
-// Controller to manage settings state
+/// State notifier class managing runtime updates of [AppSettings].
+///
+/// Automatically writes modified settings to local SharedPreferences persistent storage.
 class SettingsController extends StateNotifier<AppSettings> {
   final SharedPreferences _prefs;
 
+  /// Creates a [SettingsController] loading values from shared preferences.
   SettingsController(this._prefs) : super(_loadSettings(_prefs));
 
+  /// Expose the current loaded settings.
   AppSettings get settings => state;
 
+  /// Load settings from SharedPreferences storage, generating a random API key if not yet set.
   static AppSettings _loadSettings(SharedPreferences prefs) {
     String? apiKey = prefs.getString('apiKey');
-    /// Documentation for if.
     if (apiKey == null) {
       final random = Random.secure();
       final values = List<int>.generate(32, (i) => random.nextInt(256));
@@ -94,24 +114,25 @@ class SettingsController extends StateNotifier<AppSettings> {
     );
   }
 
-  /// Documentation for setNetworkInterface.
+  /// Update the target network interface setting.
   void setNetworkInterface(String interface) {
     _prefs.setString('selectedNetworkInterface', interface);
     state = state.copyWith(selectedNetworkInterface: interface);
   }
 
-  /// Documentation for togglePerCoreCpu.
+  /// Toggle between aggregated and per-core CPU dashboard displays.
   void togglePerCoreCpu(bool show) {
     _prefs.setBool('showPerCoreCpu', show);
     state = state.copyWith(showPerCoreCpu: show);
   }
 
-  /// Documentation for setRefreshInterval.
+  /// Set the refresh poll interval rate.
   void setRefreshInterval(int seconds) {
     _prefs.setInt('refreshIntervalSeconds', seconds);
     state = state.copyWith(refreshIntervalSeconds: seconds);
   }
 
+  /// Update the MariaDB connection configurations.
   void setDatabaseConfig({
     required String host,
     required int port,
@@ -134,15 +155,16 @@ class SettingsController extends StateNotifier<AppSettings> {
     );
   }
 
-  /// Documentation for setApiKey.
+  /// Set a new API key value.
   void setApiKey(String key) {
     _prefs.setString('apiKey', key);
     state = state.copyWith(apiKey: key);
   }
 }
 
-// Provider for the settings controller
+/// Provider exposing the global [SettingsController] notifier.
 final settingsProvider = StateNotifierProvider<SettingsController, AppSettings>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return SettingsController(prefs);
 });
+

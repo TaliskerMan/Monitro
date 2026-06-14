@@ -21,19 +21,31 @@ import 'api_monitor.dart';
 
 final _log = Logger('CollectorManager');
 
+/// Coordinates and schedules all metric collection cycles.
+///
+/// Drives the execution of system, cpu, memory, disk, network, netstat, processes,
+/// users, and API monitor collectors, caches the latest snapshot, and dispatches
+/// snapshots to the MariaDB storage layer.
 class CollectorManager {
+  /// Configuration mapping details parsed from monitro.yaml.
   final YamlMap config;
+
+  /// Database persistence service reference.
   final MariaDbService dbService;
+
+  /// Internal recurring timer scheduling collection loops.
   Timer? _timer;
 
   /// Holds the latest snapshot of all metrics (for real-time API responses).
   Map<String, dynamic> latestSnapshot = {};
 
+  /// Instantiates a new [CollectorManager] using config specifications and database references.
   CollectorManager({
     required this.config,
     required this.dbService,
   });
 
+  /// Starts the periodic system metrics collection loop with the specified [interval].
   void start(Duration interval) {
     _log.info('Collector loop started (platform: ${Platform.operatingSystem})');
     _timer = Timer.periodic(interval, (_) => _collect());
@@ -41,6 +53,7 @@ class CollectorManager {
     _collect();
   }
 
+  /// Cancels the running collection timer loop.
   void stop() {
     _timer?.cancel();
     _log.info('Collector loop stopped.');

@@ -2,9 +2,15 @@
 // Returns the top N processes by CPU and memory usage.
 import 'dart:io';
 
+/// Collector for querying and parsing system process statistics.
+///
+/// Filters and sorts active node processes to isolate the top resources consumers
+/// by CPU and memory usage. Supports Linux/macOS (via `ps`) and Windows (via PowerShell).
 class ProcessCollector {
-  static const int _topN = 50; // Collect top 50 processes
+  /// The maximum number of top resource-consuming processes to record.
+  static const int _topN = 50;
 
+  /// Gathers lists of top processes running on the machine based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isLinux) return _collectLinux();
     if (Platform.isMacOS) return _collectMacOS();

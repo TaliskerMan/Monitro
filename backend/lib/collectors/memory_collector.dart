@@ -2,7 +2,12 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Collector for querying and parsing system memory utilization metrics.
+///
+/// Retrieves physical memory limits, active page caching, and swap metrics
+/// on Linux (via `/proc/meminfo`), macOS (via `sysctl` and `vm_stat`), and Windows (via PowerShell).
 class MemoryCollector {
+  /// Gathers active physical and swap memory metrics based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isLinux) return _collectLinux();
     if (Platform.isMacOS) return _collectMacOS();

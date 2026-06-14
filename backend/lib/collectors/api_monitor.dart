@@ -4,10 +4,15 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Monitor for identifying active outbound HTTP/HTTPS connections.
+///
+/// Correlates active TCP sockets with ports commonly utilized by Web APIs
+/// (e.g. 80, 443, 8080) to count connections grouped by process name.
 class ApiMonitor {
-  // Ports considered as "API/HTTP" calls
+  /// Ports considered as outbound HTTP/HTTPS/API calls.
   static const _httpPorts = {80, 443, 8080, 8443, 8000, 3000, 4000, 5000};
 
+  /// Dispatches collector processes to identify outbound API connection metrics based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isLinux) return _collectLinux();
     if (Platform.isMacOS) return _collectMacOS();

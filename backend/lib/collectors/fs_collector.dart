@@ -2,7 +2,12 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Collector for querying and parsing filesystem mount capacity details.
+///
+/// Executes native mount queries across POSIX systems (via `df -P -k`)
+/// and Windows (via PowerShell PSDrive cmdlets).
 class FsCollector {
+  /// Gathers active partition storage boundaries and usage percentages based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isWindows) return _collectWindows();
     return _collectPosix();

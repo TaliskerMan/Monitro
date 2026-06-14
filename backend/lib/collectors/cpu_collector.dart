@@ -4,10 +4,18 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Collector for querying and parsing CPU utilization metrics.
+///
+/// Handles multi-core queries across Linux (via `/proc/stat`), macOS (via `top` and `sysctl`),
+/// and Windows (via PowerShell WMI class queries). Computes relative delta utilization.
 class CpuCollector {
+  /// Historical total CPU ticks cache mapped by core identifier.
   static final Map<String, int> _lastTotal = {};
+
+  /// Historical active CPU ticks cache mapped by core identifier.
   static final Map<String, int> _lastBusy = {};
 
+  /// Gathers CPU utilization metrics and core stats based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isLinux) return _collectLinux();
     if (Platform.isMacOS) return _collectMacOS();

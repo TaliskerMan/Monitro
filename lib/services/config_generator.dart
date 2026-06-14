@@ -3,8 +3,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'preferences_service.dart';
 
-/// Documentation for ConfigGenerator.
+
+/// Service class responsible for creating and writing the collector daemon's configuration file.
+///
+/// Converts application settings into a standard YAML configuration file loaded by the backend.
 class ConfigGenerator {
+  /// Resolves the absolute path to the SSL certificates resource directory.
   static String _getCertsDir() {
     final exeLoc = Platform.resolvedExecutable;
     if (Platform.isMacOS && exeLoc.contains('.app/Contents/MacOS/')) {
@@ -18,7 +22,15 @@ class ConfigGenerator {
     return p.join(Directory.current.path, 'certs');
   }
 
-  /// Documentation for generateConfig.
+  /// Generate a valid `monitro.yaml` configuration file from settings values.
+  ///
+  /// Writes the output file to the system-specific application support directory.
+  ///
+  /// Args:
+  ///   settings: The current AppSettings holding database parameters.
+  ///
+  /// Returns:
+  ///   The absolute file path to the generated yaml configuration.
   static Future<String> generateConfig(AppSettings settings) async {
     final supportDir = await getApplicationSupportDirectory();
     final configDir = Directory(p.join(supportDir.path, 'config'));
@@ -30,7 +42,7 @@ class ConfigGenerator {
     final certPath = p.join(certDir, 'server.crt').replaceAll('\\', '/');
     final keyPath = p.join(certDir, 'server.key').replaceAll('\\', '/');
 
-    // Default config values except DB
+    // Default configuration template containing server parameters, thresholds, and port maps
     final yaml = '''
 server:
   host: 127.0.0.1
@@ -89,3 +101,4 @@ monitored_ports:
     return configFile.path;
   }
 }
+

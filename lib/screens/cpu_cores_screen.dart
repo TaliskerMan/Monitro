@@ -4,8 +4,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:monitro/services/api_service.dart';
 import 'package:monitro/theme/app_theme.dart';
 
-/// Documentation for CpuCoresScreen.
+/// Screen widget rendering core-by-core processor utilization.
+///
+/// Refreshes metrics at regular intervals and uses fl_chart to display a
+/// color-coded bar chart matching load ranges (green, orange, red).
 class CpuCoresScreen extends StatefulWidget {
+  /// Creates a [CpuCoresScreen] instance.
   const CpuCoresScreen({super.key});
 
   @override
@@ -20,6 +24,7 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
   void initState() {
     super.initState();
     _load();
+    // Schedule periodic ticks to reload CPU core usage metrics from the API
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 2));
       if (!mounted) return false;
@@ -28,6 +33,7 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
     });
   }
 
+  /// Request the latest metrics snapshot from the API service.
   Future<void> _load() async {
     try {
       final data = await ApiService.getCurrentMetrics();
@@ -38,7 +44,6 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
 
   @override
   Widget build(BuildContext context) {
-    /// Documentation for if.
     if (_loading) {
       return const Scaffold(
         backgroundColor: AppTheme.surface,
@@ -73,10 +78,10 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
     );
   }
 
+  /// Build the BarChart representation of core percentages.
   Widget _buildBarChart(List cores) {
     final barGroups = <BarChartGroupData>[];
     
-    /// Documentation for for.
     for (int i = 0; i < cores.length; i++) {
       final core = cores[i] as Map? ?? {};
       final rawPct = core['busy_pct'];
@@ -171,3 +176,4 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
     );
   }
 }
+

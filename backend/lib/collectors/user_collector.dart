@@ -2,7 +2,12 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Collector for querying and parsing logged-in user sessions.
+///
+/// Discovers active terminals, login timestamps, host IP domains, and current process commands
+/// on POSIX machines (via `w`) and Windows (via `query user`).
 class UserCollector {
+  /// Gathers lists of active interactive user sessions based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isWindows) return _collectWindows();
     return _collectPosix();

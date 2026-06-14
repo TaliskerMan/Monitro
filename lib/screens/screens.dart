@@ -6,8 +6,9 @@ import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../services/preferences_service.dart';
 
-/// Documentation for ProcessesScreen.
+/// Screen widget displaying top running processes on the system.
 class ProcessesScreen extends StatelessWidget {
+  /// Creates a [ProcessesScreen] instance.
   const ProcessesScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
@@ -17,8 +18,12 @@ class ProcessesScreen extends StatelessWidget {
           _ProcessTable(processes: (data['processes'] as List? ?? [])));
 }
 
+/// Data table widget listing process statistics.
 class _ProcessTable extends StatefulWidget {
+  /// Raw list of active process maps.
   final List processes;
+
+  /// Creates a [_ProcessTable] instance.
   const _ProcessTable({required this.processes});
 
   @override
@@ -44,8 +49,8 @@ class _ProcessTableState extends State<_ProcessTable> {
     _sortData(_sortColumnIndex, _sortAscending);
   }
 
+  /// Sort process rows based on column properties.
   void _sortData(int columnIndex, bool ascending) {
-    /// Documentation for setState.
     setState(() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
@@ -60,8 +65,8 @@ class _ProcessTableState extends State<_ProcessTable> {
     });
   }
 
+  /// Resolve process property values matching target sorting column indexes.
   Comparable _getSortValue(Map p, int columnIndex) {
-    /// Documentation for switch.
     switch (columnIndex) {
       case 0:
         return p['pid'] as int? ?? 0;
@@ -80,6 +85,7 @@ class _ProcessTableState extends State<_ProcessTable> {
     }
   }
 
+  /// Parse binary program filename from full cmdline parameters list.
   String _parseName(String cmdline) {
     final parts = cmdline.trim().split(' ');
     if (parts.isEmpty) return 'Unknown';
@@ -87,17 +93,19 @@ class _ProcessTableState extends State<_ProcessTable> {
     return bin;
   }
 
+  /// Standardize raw system process states into short readable status labels.
   String _mapState(String state) {
     final s = state.toUpperCase();
     if (s.startsWith('R')) return 'RUN';
     if (s.startsWith('S') || s.startsWith('I')) return 'INACT';
     if (s.startsWith('Z')) return 'Z';
     if (s.contains('LISTEN')) {
-      return 'LSTN'; // mostly for netstat, but maybe proc
+      return 'LSTN';
     }
     return s; // fallback
   }
 
+  /// Prompt the user with a confirmation warning dialog and call the kill process endpoint.
   Future<void> _killProcess(int pid, String name) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -121,10 +129,8 @@ class _ProcessTableState extends State<_ProcessTable> {
       ),
     );
 
-    /// Documentation for if.
     if (confirmed == true) {
       final res = await ApiService.killProcess(pid);
-      /// Documentation for if.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(res['error'] ?? 'Process $pid killed.'),
@@ -196,8 +202,9 @@ class _ProcessTableState extends State<_ProcessTable> {
   }
 }
 
-// Connections Screen
+/// Screen widget displaying active system network connections.
 class ConnectionsScreen extends StatelessWidget {
+  /// Creates a [ConnectionsScreen] instance.
   const ConnectionsScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
@@ -206,8 +213,12 @@ class ConnectionsScreen extends StatelessWidget {
       builder: (data) => _ConnectionTables(data: data));
 }
 
+/// Tab layout displaying inbound (listening) and outbound (established) connections.
 class _ConnectionTables extends StatelessWidget {
+  /// Raw connection statistics map returned from the API.
   final Map data;
+
+  /// Creates a [_ConnectionTables] instance.
   const _ConnectionTables({required this.data});
 
   @override
@@ -252,8 +263,8 @@ class _ConnectionTables extends StatelessWidget {
     );
   }
 
+  /// Construct the connection data table.
   Widget _buildTable(List connections, {required bool isInbound}) {
-    /// Documentation for if.
     if (connections.isEmpty) {
       return const Center(
           child:
@@ -290,7 +301,6 @@ class _ConnectionTables extends StatelessWidget {
             final remote = c['remote']?.toString() ?? '';
             final state = c['state']?.toString() ?? '';
 
-            /// Documentation for if.
             if (isInbound) {
               return DataRow(cells: [
                 DataCell(Text(process.toString(),
@@ -325,8 +335,9 @@ class _ConnectionTables extends StatelessWidget {
   }
 }
 
-// Users Screen
+/// Screen widget displaying current user login sessions.
 class UsersScreen extends StatelessWidget {
+  /// Creates a [UsersScreen] instance.
   const UsersScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
@@ -336,13 +347,16 @@ class UsersScreen extends StatelessWidget {
           _UserList(sessions: (data['sessions'] as List? ?? [])));
 }
 
+/// List builder presenting user session telemetry details.
 class _UserList extends StatelessWidget {
+  /// Raw user sessions list map.
   final List sessions;
+
+  /// Creates a [_UserList] instance.
   const _UserList({required this.sessions});
 
   @override
   Widget build(BuildContext context) {
-    /// Documentation for if.
     if (sessions.isEmpty) {
       return const Center(
           child: Text('No active sessions',
@@ -368,8 +382,9 @@ class _UserList extends StatelessWidget {
   }
 }
 
-// API Monitor Screen
+/// Screen widget displaying API requests statistics.
 class ApiMonitorScreen extends StatelessWidget {
+  /// Creates an [ApiMonitorScreen] instance.
   const ApiMonitorScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
@@ -379,13 +394,16 @@ class ApiMonitorScreen extends StatelessWidget {
           _ApiCallerList(callers: (data['api_callers'] as List? ?? [])));
 }
 
+/// List builder presenting API connection statistics counts.
 class _ApiCallerList extends StatelessWidget {
+  /// Raw list representing API caller statistics maps.
   final List callers;
+
+  /// Creates an [_ApiCallerList] instance.
   const _ApiCallerList({required this.callers});
 
   @override
   Widget build(BuildContext context) {
-    /// Documentation for if.
     if (callers.isEmpty) {
       return const Center(
           child: Text('No outbound HTTP connections detected',
@@ -415,8 +433,9 @@ class _ApiCallerList extends StatelessWidget {
   }
 }
 
-// Alerts Screen
+/// Screen widget displaying historical resource warning alerts.
 class AlertsScreen extends StatelessWidget {
+  /// Creates an [AlertsScreen] instance.
   const AlertsScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
@@ -425,13 +444,16 @@ class AlertsScreen extends StatelessWidget {
       builder: (data) => _AlertList(alerts: (data['alerts'] as List? ?? [])));
 }
 
+/// List builder presenting warning alerts details.
 class _AlertList extends StatelessWidget {
+  /// Raw alerts list.
   final List alerts;
+
+  /// Creates an [_AlertList] instance.
   const _AlertList({required this.alerts});
 
   @override
   Widget build(BuildContext context) {
-    /// Documentation for if.
     if (alerts.isEmpty) {
       return const Center(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -466,8 +488,9 @@ class _AlertList extends StatelessWidget {
   }
 }
 
-// Settings Screen
+/// Settings configuration screen.
 class SettingsScreen extends ConsumerStatefulWidget {
+  /// Creates a [SettingsScreen] instance.
   const SettingsScreen({super.key});
 
   @override
@@ -485,12 +508,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _loadVersion();
   }
 
+  /// Request version specifications from PackageInfo.
   Future<void> _loadVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
-      /// Documentation for if.
       if (mounted) {
-        /// Documentation for setState.
         setState(() {
           _version = '${info.version}+${info.buildNumber}';
         });
@@ -499,14 +521,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       log('Exception caught', error: _);}
   }
 
+  /// Request network interfaces available from the current metrics.
   Future<void> _loadInterfaces() async {
     try {
       final metrics = await ApiService.getCurrentMetrics();
       final netstat = metrics['netstat'] as Map?;
       final interfacesRaw = netstat?['interfaces'] as Map? ?? {};
-      /// Documentation for if.
       if (mounted) {
-        /// Documentation for setState.
         setState(() {
           _interfaces = ['All', ...interfacesRaw.keys.cast<String>()];
         });
@@ -593,6 +614,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 }
 
+/// Tiny title header class utilized inside settings panels.
 class _SectionHeader extends StatelessWidget {
   final String text;
   const _SectionHeader(this.text);
@@ -608,6 +630,7 @@ class _SectionHeader extends StatelessWidget {
       );
 }
 
+/// A setting tile element displaying a label and static value.
 class _SettingTile extends StatelessWidget {
   final String label, value;
   const _SettingTile({required this.label, required this.value});
@@ -625,9 +648,7 @@ class _SettingTile extends StatelessWidget {
       );
 }
 
-// ---------------------------------------------------------------------------
-// Generic data-loading screen wrapper
-// ---------------------------------------------------------------------------
+/// Generic data-loading screen wrapper.
 class _DataScreen extends StatefulWidget {
   final String title;
   final Future<Map<String, dynamic>> Function() loader;
@@ -648,6 +669,7 @@ class _DataScreenState extends State<_DataScreen> {
   void initState() {
     super.initState();
     _load();
+    // Schedule periodic refreshes of telemetry from loader functions
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 5));
       if (!mounted) return false;
@@ -656,11 +678,10 @@ class _DataScreenState extends State<_DataScreen> {
     });
   }
 
+  /// Trigger the custom loader callback to refresh datasets.
   Future<void> _load() async {
     final data = await widget.loader();
-    /// Documentation for if.
     if (mounted) {
-      /// Documentation for setState.
       setState(() {
         _data = data;
         _loading = false;
@@ -683,5 +704,7 @@ class _DataScreenState extends State<_DataScreen> {
 }
 
 extension _StringTake on String {
+  /// Safely truncate strings to size limits.
   String take(int n) => length > n ? substring(0, n) : this;
 }
+

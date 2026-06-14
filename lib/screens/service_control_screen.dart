@@ -3,8 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-/// Documentation for ServiceControlScreen.
+/// Screen widget hosting backend daemon service controls.
+///
+/// Permits toggling systemd units via `systemctl` (run with root escalation using `pkexec`),
+/// and renders daemon process logs fetched from standard journal pipelines.
 class ServiceControlScreen extends StatefulWidget {
+  /// Creates a [ServiceControlScreen] instance.
   const ServiceControlScreen({super.key});
 
   @override
@@ -23,17 +27,15 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
     _loadLog();
   }
 
+  /// Read active log files using shell `tail` command falling back to `journalctl`.
   Future<void> _loadLog() async {
     try {
       // Read the last 50 lines from the persistent log file
       final result = await Process.run(
           'tail', ['-n', '50', '/var/log/monitro-collector.log']);
-      /// Documentation for if.
       if (mounted) {
-        /// Documentation for setState.
         setState(() {
           _logContent = result.stdout.toString().trim();
-          /// Documentation for if.
           if (_logContent.isEmpty) {
             _logContent = '(No log entries yet)';
           }
@@ -51,12 +53,9 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
           '50',
           '--output=short'
         ]);
-        /// Documentation for if.
         if (mounted) {
-          /// Documentation for setState.
           setState(() {
             _logContent = result.stdout.toString().trim();
-            /// Documentation for if.
             if (_logContent.isEmpty) {
               _logContent = '(No log entries yet)';
             }
@@ -64,9 +63,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
         }
       } catch (_) {
       log('Exception caught', error: _);
-        /// Documentation for if.
         if (mounted) {
-          /// Documentation for setState.
           setState(() {
             _logContent = '(Unable to read logs)';
           });
@@ -75,13 +72,12 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
     }
   }
 
+  /// Run `systemctl is-active` to verify daemon status.
   Future<void> _checkServiceStatus() async {
     try {
       final result = await Process.run(
           'systemctl', ['is-active', 'monitro-collector.service']);
-      /// Documentation for if.
       if (mounted) {
-        /// Documentation for setState.
         setState(() {
           _isServiceOn = result.stdout.toString().trim() == 'active';
           _isLoading = false;
@@ -89,9 +85,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
       }
     } catch (e) {
       log('Exception caught', error: e);
-      /// Documentation for if.
       if (mounted) {
-        /// Documentation for setState.
         setState(() {
           _isServiceOn = false;
           _isLoading = false;
@@ -100,15 +94,19 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
     }
   }
 
+  /// Start or stop the collector service systemd unit.
+  ///
+  /// Requests password authorization by prefixing systemctl commands with pkexec.
+  ///
+  /// Args:
+  ///   turnOn: True to start the service, False to stop it.
   Future<void> _toggleService(bool turnOn) async {
     // Pre-check: is the service already in the desired state?
     final preCheck = await Process.run(
         '/usr/bin/systemctl', ['is-active', 'monitro-collector.service']);
     final alreadyActive = preCheck.stdout.toString().trim() == 'active';
 
-    /// Documentation for if.
     if (turnOn && alreadyActive) {
-      /// Documentation for if.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -118,9 +116,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
       }
       return;
     }
-    /// Documentation for if.
     if (!turnOn && !alreadyActive) {
-      /// Documentation for if.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -131,7 +127,6 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
       return;
     }
 
-    /// Documentation for setState.
     setState(() {
       _isLoading = true;
     });
@@ -139,7 +134,6 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
     try {
       ProcessResult result;
 
-      /// Documentation for if.
       if (turnOn) {
         await Process.run('pkexec', [
           '/usr/bin/systemctl',
@@ -159,10 +153,8 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
         ]);
       }
 
-      /// Documentation for if.
       if (result.exitCode != 0) {
         final stderr = result.stderr.toString().trim();
-        /// Documentation for if.
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -176,7 +168,6 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
       }
     } catch (e) {
       log('Exception caught', error: e);
-      /// Documentation for if.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -186,13 +177,11 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
     } finally {
       await Future.delayed(const Duration(seconds: 3));
 
-      /// Documentation for if.
       if (mounted) {
         final checkResult = await Process.run(
             '/usr/bin/systemctl', ['is-active', 'monitro-collector.service']);
         final isActive = checkResult.stdout.toString().trim() == 'active';
 
-        /// Documentation for setState.
         setState(() {
           _isServiceOn = isActive;
           _isLoading = false;
@@ -339,3 +328,4 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
     );
   }
 }
+

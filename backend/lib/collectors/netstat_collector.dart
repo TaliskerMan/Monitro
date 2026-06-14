@@ -2,10 +2,15 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Collector for querying and parsing system network sockets and connections.
+///
+/// Discovers open ports, bound interfaces, IP addresses, and state of sockets (e.g. LISTEN, ESTABLISHED)
+/// using native system tools on Linux (via `ss`), macOS (via `lsof`), and Windows (via `netstat`).
 class NetstatCollector {
-  // Simple cache for resolved IPs
+  /// Internal caching mechanism to map resolved remote IP addresses to domain hosts.
   static final Map<String, String> _dnsCache = {};
 
+  /// Gathers active socket connection metrics and status snapshots based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isLinux) return _collectLinux();
     if (Platform.isMacOS) return _collectMacOS();

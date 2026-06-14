@@ -2,7 +2,12 @@
 import 'dart:developer';
 import 'dart:io';
 
+/// Collector for querying and parsing disk I/O metrics.
+///
+/// Gathers active reads, writes, and transfer throughput across physical storage
+/// partitions on Linux (via `/proc/diskstats`), macOS (via `iostat`), and Windows (via PowerShell).
 class DiskCollector {
+  /// Gathers active disk throughput and metric statistics based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
     if (Platform.isLinux) return _collectLinux();
     if (Platform.isMacOS) return _collectMacOS();

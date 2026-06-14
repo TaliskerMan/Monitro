@@ -15,13 +15,26 @@ import '../storage/mariadb_service.dart';
 
 final _log = Logger('MonitroApiServer');
 
+/// shelf HTTP/HTTPS server orchestrating UI metric endpoints.
+///
+/// Binds routing pathways to fetch real-time memory metrics, database historical logs,
+/// and execute administrative signals (e.g. process termination). Binds CORS and Auth middleware.
 class MonitroApiServer {
+  /// Raw configuration Map containing host and port specifications.
   final YamlMap config;
-  final String configDir;   // Directory of monitro.yaml — used to resolve relative paths
+
+  /// Absolute directory path used to resolve SSL file resource scopes.
+  final String configDir;
+
+  /// Database helper class mapping historical queries.
   final MariaDbService dbService;
+
+  /// System metrics manager containing caching state references.
   final CollectorManager collectorManager;
+
   HttpServer? _server;
 
+  /// Creates a [MonitroApiServer] instance.
   MonitroApiServer({
     required this.config,
     required this.configDir,
@@ -29,6 +42,7 @@ class MonitroApiServer {
     required this.collectorManager,
   });
 
+  /// Configure shelf pipelines, bind SSL contexts, and spin up the server.
   Future<void> start() async {
     final host = config['host'] as String? ?? '127.0.0.1';
     final port = config['port'] as int? ?? 8443;
@@ -81,6 +95,7 @@ class MonitroApiServer {
     _log.info('Monitro API server started: $scheme://$host:$port');
   }
 
+  /// Close the listening shelf httpServer.
   Future<void> stop() async {
     await _server?.close(force: true);
     _log.info('API server stopped.');
@@ -90,14 +105,17 @@ class MonitroApiServer {
   // Handlers
   // ---------------------------------------------------------------------------
 
+  /// Health check ping endpoint.
   Response _handleHealth(Request request) {
     return _json({'status': 'ok', 'version': '0.1.0'});
   }
 
+  /// Expose the current metrics snapshot cache.
   Response _handleCurrentMetrics(Request request) {
     return _json(collectorManager.latestSnapshot);
   }
 
+  /// Query historical records logged in MariaDB tables.
   Future<Response> _handleMetricHistory(Request request) async {
     final params = request.url.queryParameters;
     final metric  = params['metric'] ?? 'cpu.busy_pct';
@@ -112,6 +130,7 @@ class MonitroApiServer {
     return _json({'metric': metric, 'minutes': minutes, 'data': data});
   }
 
+  /// Query top processes list. Bypasses database queries if live cached stats exist.
   Future<Response> _handleProcesses(Request request) async {
     final limit = int.tryParse(
       request.url.queryParameters['limit'] ?? '20',
@@ -127,6 +146,7 @@ class MonitroApiServer {
     return _json({'processes': dbData, 'source': 'db'});
   }
 
+  /// Terminate a running system process by PID.
   Future<Response> _handleKillProcess(Request request, String pidStr) async {
     final pid = int.tryParse(pidStr);
     if (pid == null) return Response.badRequest(body: 'Invalid PID');
@@ -146,21 +166,25 @@ class MonitroApiServer {
     }
   }
 
+  /// Retrieve live network socket logs.
   Response _handleConnections(Request request) {
     final snapshot = collectorManager.latestSnapshot;
     return _json(snapshot['netstat'] ?? {'error': 'no data'});
   }
 
+  /// Retrieve current user sessions list.
   Response _handleUsers(Request request) {
     final snapshot = collectorManager.latestSnapshot;
     return _json(snapshot['users'] ?? {'error': 'no data'});
   }
 
+  /// Retrieve API usage statistics.
   Response _handleApiCalls(Request request) {
     final snapshot = collectorManager.latestSnapshot;
     return _json(snapshot['api_calls'] ?? {'error': 'no data'});
   }
 
+  /// Query recent warning alerts recorded in MariaDB.
   Future<Response> _handleAlerts(Request request) async {
     final limit = int.tryParse(
       request.url.queryParameters['limit'] ?? '50',
@@ -173,6 +197,7 @@ class MonitroApiServer {
   // Helpers
   // ---------------------------------------------------------------------------
 
+  /// Helper to convert dynamic Maps into HTTP application/json responses.
   Response _json(dynamic data) {
     return Response.ok(
       jsonEncode(data),
@@ -183,6 +208,7 @@ class MonitroApiServer {
     );
   }
 
+  /// Middleware setting up CORS response headers.
   Middleware _corsMiddleware() {
     return (Handler innerHandler) {
       return (Request request) async {
@@ -201,6 +227,7 @@ class MonitroApiServer {
     };
   }
 
+  /// Middleware checking API keys authorization headers.
   Middleware _authMiddleware(String? apiKey) {
     return (Handler innerHandler) {
       return (Request request) async {
@@ -218,3 +245,4 @@ class MonitroApiServer {
     };
   }
 }
+
