@@ -82,17 +82,20 @@ class AppSettings {
 /// State notifier class managing runtime updates of [AppSettings].
 ///
 /// Automatically writes modified settings to local SharedPreferences persistent storage.
-class SettingsController extends StateNotifier<AppSettings> {
-  final SharedPreferences _prefs;
-
-  /// Creates a [SettingsController] loading values from shared preferences.
-  SettingsController(this._prefs) : super(_loadSettings(_prefs));
-
+class SettingsController extends Notifier<AppSettings> {
   /// Expose the current loaded settings.
   AppSettings get settings => state;
 
+  @override
+  AppSettings build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return loadSettings(prefs);
+  }
+
+  SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
+
   /// Load settings from SharedPreferences storage, generating a random API key if not yet set.
-  static AppSettings _loadSettings(SharedPreferences prefs) {
+  static AppSettings loadSettings(SharedPreferences prefs) {
     String? apiKey = prefs.getString('apiKey');
     if (apiKey == null) {
       final random = Random.secure();
@@ -163,8 +166,5 @@ class SettingsController extends StateNotifier<AppSettings> {
 }
 
 /// Provider exposing the global [SettingsController] notifier.
-final settingsProvider = StateNotifierProvider<SettingsController, AppSettings>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return SettingsController(prefs);
-});
+final settingsProvider = NotifierProvider<SettingsController, AppSettings>(SettingsController.new);
 

@@ -27,7 +27,7 @@ Future<void> main() async {
   final dbUser = sharedPrefs.getString('mariadbUser');
   if (dbUser != null) {
     // Read the settings from local shared preferences storage
-    final settings = SettingsController(sharedPrefs).settings;
+    final settings = SettingsController.loadSettings(sharedPrefs);
     // Build a collector configuration file with details from settings
     final configPath = await ConfigGenerator.generateConfig(settings);
     // Boot the collector service daemon using the built config path
@@ -35,7 +35,7 @@ Future<void> main() async {
   }
 
   // Initialize the ApiService base security headers
-  final settings = SettingsController(sharedPrefs).settings;
+  final settings = SettingsController.loadSettings(sharedPrefs);
   ApiService.apiKey = settings.apiKey;
 
   runApp(

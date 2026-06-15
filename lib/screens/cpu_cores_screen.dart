@@ -38,8 +38,8 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
     try {
       final data = await ApiService.getCurrentMetrics();
       if (mounted) setState(() { _data = data; _loading = false; });
-    } catch (_) {
-      log('Exception caught', error: _);}
+    } catch (e) {
+      log('Exception caught', error: e);}
   }
 
   @override

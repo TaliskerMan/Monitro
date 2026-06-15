@@ -48,8 +48,8 @@ class ApiService {
         try {
           final fallbackResponse = await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
           return fallbackResponse.statusCode == 200;
-        } catch (_) {
-      log('Exception caught', error: _);
+        } catch (e) {
+      log('Exception caught', error: e);
           return false;
         }
       }

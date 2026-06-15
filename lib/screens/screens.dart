@@ -517,8 +517,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _version = '${info.version}+${info.buildNumber}';
         });
       }
-    } catch (_) {
-      log('Exception caught', error: _);}
+    } catch (e) {
+      log('Exception caught', error: e);}
   }
 
   /// Request network interfaces available from the current metrics.

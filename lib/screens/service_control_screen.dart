@@ -61,8 +61,8 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
             }
           });
         }
-      } catch (_) {
-      log('Exception caught', error: _);
+      } catch (e) {
+      log('Exception caught', error: e);
         if (mounted) {
           setState(() {
             _logContent = '(Unable to read logs)';
