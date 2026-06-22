@@ -68,7 +68,7 @@ create-dmg \
   --icon-size 120 \
   --icon "Monitro.app" 150 190 \
   --hide-extension "Monitro.app" \
-  --app-drop-link 450 185 \
+  --icon "Applications" 450 185 \
   "${DMG_FILE}" \
   "${STAGING_DIR}"/ || true
 
@@ -140,7 +140,7 @@ create-dmg \
   --icon-size 120 \
   --icon "Monitro.app" 150 190 \
   --hide-extension "Monitro.app" \
-  --app-drop-link 450 185 \
+  --icon "Applications" 450 185 \
   "${DMG_FILE}" \
   "${STAGING_DIR}"/ || true
 
