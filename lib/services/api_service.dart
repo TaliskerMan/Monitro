@@ -12,7 +12,13 @@ import 'dart:io';
 class ApiService {
   /// Unique security token needed to authenticate requests to the collector API.
   static String? apiKey;
-  static String _baseUrl = 'https://127.0.0.1:8443/api/v1';
+
+  /// Absolute path to the Monitro CA certificate (`ca.crt`). When set (e.g. by
+  /// startup code that knows the app-support certs dir), the HTTPS client pins
+  /// this CA instead of blindly trusting any localhost certificate.
+  static String? caCertPath;
+
+  static const String _baseUrl = 'https://127.0.0.1:8443/api/v1';
 
   /// Standard headers containing bearer authorization tokens.
   static Map<String, String> get _headers {
@@ -21,38 +27,68 @@ class ApiService {
     return h;
   }
 
-  /// HTTP client that trusts the local Monitro CA certificate.
+  static SecurityContext? _pinnedContext;
+  static bool _contextResolved = false;
+
+  /// Resolve the CA cert path: explicit override, then common locations.
+  static String? _resolveCaCert() {
+    final candidates = <String>[
+      if (caCertPath != null) caCertPath!,
+      if (Platform.environment['MONITRO_CA_CERT'] != null)
+        Platform.environment['MONITRO_CA_CERT']!,
+      // Packaged macOS bundle: <App>.app/Contents/Resources/certs/ca.crt
+      '${File(Platform.resolvedExecutable).parent.parent.path}/Resources/certs/ca.crt',
+      // Dev tree.
+      '${Directory.current.path}/certs/ca.crt',
+    ];
+    for (final c in candidates) {
+      if (c.isNotEmpty && File(c).existsSync()) return c;
+    }
+    return null;
+  }
+
+  /// HTTPS client. Pins the local Monitro CA when it can be found (the server
+  /// cert is then validated against it); otherwise falls back to accepting only
+  /// localhost self-signed certs, with a warning logged (P1-4).
   static http.Client get _client {
-    // On desktop, we use a custom HttpClient that bypasses cert validation for localhost.
-    // In production, load the local CA cert instead.
-    final ioClient = HttpClient()
-      ..badCertificateCallback = (cert, host, port) {
-        // Only allow self-signed certs from localhost / 127.0.0.1
-        return host == '127.0.0.1' || host == 'localhost';
-      };
+    if (!_contextResolved) {
+      _contextResolved = true;
+      final ca = _resolveCaCert();
+      if (ca != null) {
+        try {
+          _pinnedContext = SecurityContext(withTrustedRoots: false)
+            ..setTrustedCertificates(ca);
+        } catch (e) {
+          log('Failed to load pinned CA; falling back', error: e);
+          _pinnedContext = null;
+        }
+      } else {
+        log('Monitro CA cert not found — TLS is not pinned (localhost-only trust).');
+      }
+    }
+
+    final HttpClient ioClient;
+    if (_pinnedContext != null) {
+      // Validate the server cert against the pinned CA (no blanket bypass).
+      ioClient = HttpClient(context: _pinnedContext);
+    } else {
+      ioClient = HttpClient()
+        ..badCertificateCallback = (cert, host, port) =>
+            host == '127.0.0.1' || host == 'localhost';
+    }
     return IOClient(ioClient);
   }
 
   /// Query the health endpoint to determine if the backend is actively listening.
-  ///
-  /// Automatically falls back from HTTPS to HTTP if HTTPS TLS handshakes fail.
   static Future<bool> isBackendHealthy() async {
     try {
-      final response = await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
+      final response =
+          await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
       return response.statusCode == 200;
     } catch (e) {
-      log('Exception caught', error: e);
-      if (_baseUrl.startsWith('https://')) {
-        // Fallback to HTTP and retry
-        _baseUrl = 'http://127.0.0.1:8443/api/v1';
-        try {
-          final fallbackResponse = await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
-          return fallbackResponse.statusCode == 200;
-        } catch (e) {
-      log('Exception caught', error: e);
-          return false;
-        }
-      }
+      // The server listens with TLS on 8443; there is no HTTP fallback to try
+      // (an http:// request to a TLS port cannot succeed), so report unhealthy.
+      log('Backend health check failed', error: e);
       return false;
     }
   }

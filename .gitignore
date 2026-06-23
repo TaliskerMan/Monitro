@@ -48,3 +48,11 @@ data/
 *.aab
 *.apk
 artifacts/
+
+# Build/run logs and committed release artifacts (keep releases in GitHub Releases)
+*_fail.log
+flutter_*.log
+/linux/RELBLD/
+*.deb
+*.deb.asc
+*.deb.sha512

@@ -82,30 +82,48 @@ class BackendService {
     }
   }
 
-  /// Resolve the absolute path to the collector binary based on package structure and platform OS.
+  /// Resolve the absolute path to the collector binary across dev runs AND
+  /// installed packages. Returns the first candidate that exists, else the dev
+  /// fallback. The previous Linux code only resolved `Directory.current/backend`
+  /// which is wrong for an installed .deb (binary lives under /usr or /opt).
   static String _getCollectorPath() {
     final exeLoc = Platform.resolvedExecutable;
+    final exeDir = File(exeLoc).parent.path;
+    final bin = Platform.isWindows ? 'monitro_collector.exe' : 'monitro_collector';
     debugPrint('App Executable: $exeLoc');
 
-    // On macOS packaged app, it is Contents/MacOS/monitro
-    // Resource dir is Contents/MacOS/monitro_collector (Required for Sandbox execution)
+    final candidates = <String>[
+      // Explicit override.
+      if (Platform.environment['MONITRO_COLLECTOR'] != null)
+        Platform.environment['MONITRO_COLLECTOR']!,
+    ];
+
     if (Platform.isMacOS && exeLoc.contains('.app/Contents/MacOS/')) {
       final appDir = File(exeLoc).parent.parent.path;
-      return p.join(appDir, 'MacOS', 'monitro_collector');
+      candidates.add(p.join(appDir, 'MacOS', bin));
     }
-    
-    // On Windows, it is Monitro\monitro.exe
-    // Resource dir is Monitro\backend\monitro_collector.exe
-    if (Platform.isWindows && p.basename(exeLoc).toLowerCase() == 'monitro.exe') {
-      final appDir = File(exeLoc).parent.path;
-      return p.join(appDir, 'backend', 'monitro_collector.exe');
+    if (Platform.isWindows) {
+      candidates.add(p.join(exeDir, 'backend', bin));
+    }
+    if (Platform.isLinux) {
+      // Common installed layouts for a Flutter Linux .deb.
+      candidates.addAll([
+        p.join(exeDir, bin),
+        p.join(exeDir, 'backend', bin),
+        p.join(exeDir, 'lib', bin),
+        '/opt/monitro/backend/$bin',
+        '/usr/lib/monitro/$bin',
+        '/usr/lib/monitro/backend/$bin',
+      ]);
     }
 
-    // Fallback for running locally from source 'flutter run'
-    if (Platform.isWindows) {
-      return p.join(Directory.current.path, 'backend', 'monitro_collector.exe');
+    // Dev fallback (running from source via `flutter run`).
+    candidates.add(p.join(Directory.current.path, 'backend', bin));
+
+    for (final c in candidates) {
+      if (c.isNotEmpty && File(c).existsSync()) return c;
     }
-    return p.join(Directory.current.path, 'backend', 'monitro_collector');
+    return candidates.last; // dev fallback path (may not exist; caller handles)
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import '../services/error_messages.dart';
 import '../services/preferences_service.dart';
 
 /// State-aware widget presenting system metrics overview.
@@ -55,23 +56,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Future<void> _loadMetrics() async {
     try {
       final data = await ApiService.getCurrentMetrics();
-      if (mounted) {
-        setState(() {
+      if (!mounted) return;
+      final err = data['error'] as String?;
+      setState(() {
+        _loading = false;
+        if (err != null) {
+          // Surface the backend error; do NOT overwrite the last good metrics
+          // with an error map (which would silently render every card blank).
+          _error = _friendlyError(err);
+        } else {
           _metrics = data;
-          _loading = false;
-          _error = data['error'] as String?;
-        });
-      }
+          _error = null;
+        }
+      });
     } catch (e) {
       log('Exception caught', error: e);
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = _friendlyError(e.toString());
           _loading = false;
         });
       }
     }
   }
+
+  /// Translate raw backend errors into actionable messages (pure helper).
+  String _friendlyError(String raw) => friendlyBackendError(raw);
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +97,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
+          _collectorStatusChip(),
+          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -135,6 +147,68 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  /// Always-visible collector status: green = receiving data, red = error,
+  /// grey = connecting. Makes "is the collector actually running?" unambiguous.
+  Widget _collectorStatusChip() {
+    final Color color;
+    final String label;
+    if (_error != null) {
+      color = AppTheme.danger;
+      label = 'Collector: error';
+    } else if (_metrics != null) {
+      color = Colors.green;
+      label = 'Collector: live';
+    } else {
+      color = AppTheme.muted;
+      label = 'Collector: connecting';
+    }
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(color: color, fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// A persistent, prominent banner shown when the backend returns an error,
+  /// so a 403/500 never silently looks like "all metrics are blank/zero".
+  Widget _buildErrorBanner() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.danger.withValues(alpha: 0.12),
+        border: Border.all(color: AppTheme.danger),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: AppTheme.danger),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _error!,
+              style: const TextStyle(
+                  color: AppTheme.danger, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Build the dashboard grid listing cards representing CPU, RAM, Load, and Interfaces.
   Widget _buildDashboard() {
     final system = _metrics?['system'] as Map?;
@@ -150,13 +224,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     // CPU Cards
     if (settings.showPerCoreCpu && cpu?['cores'] != null) {
       final cores = cpu!['cores'] as List;
+      // On macOS, per-core data is the aggregate repeated; label it honestly.
+      final perCoreReal = cpu['per_core_real'] != false;
       for (int i = 0; i < cores.length; i++) {
         final corePct = cores[i]['busy_pct'];
         cards.add(_MetricCard(
           title: 'CPU Core $i',
           icon: Icons.memory,
           value: '${((corePct ?? 0.0) as num).toStringAsFixed(1)}%',
-          subtitle: 'utilization',
+          subtitle: perCoreReal ? 'utilization' : 'aggregate (not per-core)',
           color: _pctColor(corePct),
         ));
       }
@@ -224,6 +300,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (_error != null) _buildErrorBanner(),
           if (system != null) _buildSystemHeader(system),
           const SizedBox(height: 20),
           LayoutBuilder(builder: (ctx, constraints) {

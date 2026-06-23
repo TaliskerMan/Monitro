@@ -138,6 +138,9 @@ class CpuCollector {
         'busy_pct':    user + sys,
         'logical_cores': coreCount,
         'cores': cores,
+        // macOS per-core figures are the aggregate value repeated (real per-core
+        // needs powermetrics/root). Flag it so the UI can label it honestly.
+        'per_core_real': false,
       };
     } catch (e) {
       log('Exception caught', error: e);

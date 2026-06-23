@@ -12,8 +12,27 @@ import 'package:yaml/yaml.dart';
 
 import '../collectors/collector_manager.dart';
 import '../storage/mariadb_service.dart';
+import '../version.dart';
 
 final _log = Logger('MonitroApiServer');
+
+/// Pure authorization decision (testable without a running server).
+///
+/// Returns true if the request should be allowed. `/health` and CORS preflight
+/// are always allowed; every other endpoint requires `Authorization: Bearer
+/// <apiKey>`.
+bool isRequestAuthorized({
+  required String method,
+  required String path,
+  required String? authHeader,
+  required String apiKey,
+}) {
+  if (method == 'OPTIONS') return true;
+  // shelf strips the leading slash from request.url.path.
+  final normalized = path.startsWith('/') ? path.substring(1) : path;
+  if (normalized == 'api/v1/health') return true;
+  return authHeader == 'Bearer $apiKey';
+}
 
 /// shelf HTTP/HTTPS server orchestrating UI metric endpoints.
 ///
@@ -52,6 +71,18 @@ class MonitroApiServer {
     final certPath = certRelPath.startsWith('/') ? certRelPath : '$configDir/$certRelPath';
     final keyPath  = keyRelPath.startsWith('/')  ? keyRelPath  : '$configDir/$keyRelPath';
     final apiKey   = config['api_key'] as String?;
+
+    // Security: the api_key is the only thing standing between a local web
+    // origin and the process-kill endpoint. Refuse to start without one rather
+    // than silently exposing every endpoint (P1-4).
+    if (apiKey == null || apiKey.isEmpty) {
+      throw StateError(
+        'Refusing to start: no api_key configured. Set api_key in the collector '
+        'config (the desktop app generates one automatically). Starting without '
+        'a key would expose system telemetry and DELETE /processes to any local '
+        'web origin.',
+      );
+    }
 
     final router = Router()
       ..get('/api/v1/health',              _handleHealth)
@@ -107,7 +138,7 @@ class MonitroApiServer {
 
   /// Health check ping endpoint.
   Response _handleHealth(Request request) {
-    return _json({'status': 'ok', 'version': '0.1.0'});
+    return _json({'status': 'ok', 'version': monitroVersion});
   }
 
   /// Expose the current metrics snapshot cache.
@@ -146,24 +177,51 @@ class MonitroApiServer {
     return _json({'processes': dbData, 'source': 'db'});
   }
 
-  /// Terminate a running system process by PID.
+  /// Terminate a running system process by PID. Tries a graceful SIGTERM first
+  /// and only escalates to SIGKILL if the process is still alive (P1-5).
   Future<Response> _handleKillProcess(Request request, String pidStr) async {
     final pid = int.tryParse(pidStr);
     if (pid == null) return Response.badRequest(body: 'Invalid PID');
-    
+    // Guard against killing init/kernel/critical low PIDs.
+    if (pid <= 1) {
+      return Response.badRequest(
+        body: jsonEncode({'error': 'Refusing to kill protected PID $pid'}),
+      );
+    }
+
     try {
       if (Platform.isWindows) {
-        await Process.run('powershell', ['-Command', 'Stop-Process -Id $pid -Force']);
+        // Try a graceful close first, then force.
+        await Process.run('taskkill', ['/PID', '$pid', '/T']);
+        await Future.delayed(const Duration(seconds: 2));
+        if (await _pidAlive(pid)) {
+          await Process.run('taskkill', ['/PID', '$pid', '/T', '/F']);
+        }
       } else {
-        await Process.run('kill', ['-9', pid.toString()]);
+        await Process.run('kill', ['-TERM', pid.toString()]);
+        await Future.delayed(const Duration(seconds: 2));
+        if (await _pidAlive(pid)) {
+          _log.warning('PID $pid survived SIGTERM; escalating to SIGKILL');
+          await Process.run('kill', ['-KILL', pid.toString()]);
+        }
       }
-      _log.warning('Killed process $pid via API request');
+      _log.warning('Terminated process $pid via API request');
       return _json({'status': 'killed', 'pid': pid});
     } catch (e) {
       log('Exception caught', error: e);
       _log.severe('Failed to kill process $pid', e);
       return Response.internalServerError(body: jsonEncode({'error': e.toString()}));
     }
+  }
+
+  /// Whether [pid] is still alive (signal-0 probe / tasklist on Windows).
+  Future<bool> _pidAlive(int pid) async {
+    if (Platform.isWindows) {
+      final r = await Process.run('tasklist', ['/FI', 'PID eq $pid']);
+      return r.stdout.toString().contains('$pid');
+    }
+    final r = await Process.run('kill', ['-0', pid.toString()]);
+    return r.exitCode == 0;
   }
 
   /// Retrieve live network socket logs.
@@ -201,44 +259,44 @@ class MonitroApiServer {
   Response _json(dynamic data) {
     return Response.ok(
       jsonEncode(data),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers: {'Content-Type': 'application/json'},
     );
   }
 
-  /// Middleware setting up CORS response headers.
+  /// CORS middleware.
+  ///
+  /// The Monitro desktop UI talks to this server via dart:io (not a browser),
+  /// so it needs no cross-origin access. We therefore do NOT emit a permissive
+  /// `Access-Control-Allow-Origin: *` — that header would let any web page the
+  /// user has open read their telemetry and call DELETE /processes (P1-4).
+  /// Browser preflights are answered without an allow-origin, so browsers block
+  /// cross-origin reads.
   Middleware _corsMiddleware() {
     return (Handler innerHandler) {
       return (Request request) async {
         if (request.method == 'OPTIONS') {
-          return Response.ok('', headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          });
+          return Response(204);
         }
-        final response = await innerHandler(request);
-        return response.change(headers: {
-          'Access-Control-Allow-Origin': '*',
-        });
+        return await innerHandler(request);
       };
     };
   }
 
-  /// Middleware checking API keys authorization headers.
-  Middleware _authMiddleware(String? apiKey) {
+  /// Middleware checking API key authorization (delegates to the pure
+  /// [isRequestAuthorized] so the decision is unit-testable). [apiKey] is
+  /// guaranteed non-empty because start() refuses to run without it.
+  Middleware _authMiddleware(String apiKey) {
     return (Handler innerHandler) {
       return (Request request) async {
-        if (request.method == 'OPTIONS' || request.url.path == 'api/v1/health') {
-          return await innerHandler(request);
-        }
-        if (apiKey != null && apiKey.isNotEmpty) {
-          final authHeader = request.headers['authorization'];
-          if (authHeader == null || authHeader != 'Bearer $apiKey') {
-            return Response.forbidden(jsonEncode({'error': 'Unauthorized: Invalid API Key'}));
-          }
+        final ok = isRequestAuthorized(
+          method: request.method,
+          path: request.url.path,
+          authHeader: request.headers['authorization'],
+          apiKey: apiKey,
+        );
+        if (!ok) {
+          return Response.forbidden(
+              jsonEncode({'error': 'Unauthorized: Invalid API Key'}));
         }
         return await innerHandler(request);
       };

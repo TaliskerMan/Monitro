@@ -83,6 +83,18 @@ class MariaDbService {
 
     _log.info('Using migrations from: ${migrationsDir.path}');
 
+    // Ledger so each migration runs exactly once, and a failure is loud.
+    await _conn!.execute(
+      'CREATE TABLE IF NOT EXISTS schema_migrations ('
+      '  filename VARCHAR(255) PRIMARY KEY,'
+      '  applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+      ')',
+    );
+    final appliedRows = await _conn!.execute('SELECT filename FROM schema_migrations');
+    final applied = <String>{
+      for (final row in appliedRows.rows) row.colByName('filename') ?? '',
+    };
+
     final files = migrationsDir
         .listSync()
         .whereType<File>()
@@ -91,14 +103,19 @@ class MariaDbService {
       ..sort((a, b) => a.path.compareTo(b.path));
 
     for (final file in files) {
-      _log.info('Applying migration: ${file.path}');
+      final name = file.uri.pathSegments.last;
+      if (applied.contains(name)) {
+        _log.fine('Skipping already-applied migration: $name');
+        continue;
+      }
+      _log.info('Applying migration: $name');
       try {
         final sql = file.readAsStringSync();
         for (final stmt in sql.split(';')) {
           final clean = stmt.trim();
-          // Skip blank lines and comment-only blocks
           if (clean.isEmpty) continue;
-          final nonComment = clean.split('\n')
+          final nonComment = clean
+              .split('\n')
               .where((l) => l.trim().isNotEmpty && !l.trim().startsWith('--'))
               .join(' ')
               .trim();
@@ -106,9 +123,16 @@ class MariaDbService {
             await _conn!.execute(nonComment);
           }
         }
+        await _conn!.execute(
+          'INSERT INTO schema_migrations (filename) VALUES (:f)',
+          {'f': name},
+        );
       } catch (e) {
-      log('Exception caught', error: e);
-        _log.warning('Migration warning (may already exist): $e');
+        // A failed migration is fatal: stop rather than silently leaving the
+        // schema in an unknown/half-applied state.
+        log('Migration failed', error: e);
+        _log.severe('Migration FAILED ($name): $e');
+        rethrow;
       }
     }
     _log.info('Migrations complete.');
