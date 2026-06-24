@@ -2,7 +2,7 @@
 set -e
 
 # Auto-increment version/build number
-python3 "/Users/charlestalk/AntiGravity/workflow-tools/increment_build.py" "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/workflow-tools/increment_build.py" "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 
 # ==============================================================================
