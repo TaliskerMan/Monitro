@@ -50,7 +50,7 @@ Monitro uses modern, optimized libraries across its stack:
     > [!NOTE]
     > The installation script registers a `postinst` trigger that copies `monitro.example.yaml` to `/opt/monitro/config/monitro.yaml`, runs database setups, generates custom 4096-bit local SSL keys via `gen_certs.sh`, trusts the generated CA certificate, registers `monitro-collector.service` in systemd, and configures `/etc/logrotate.d/monitro-collector` triggers.
 4.  **Configure & Launch:**
-    Customize parameters inside `/opt/monitro/config/monitro.yaml` if needed and search for **Monitro** in your desktop application grid.
+    Customize parameters inside `/opt/monitro/config/monitro.yaml`. Ensure that a valid `api_key` is set, as the local API will refuse to start without it for security purposes. Once configured, search for **Monitro** in your desktop application grid.
 
 ### macOS Installation
 1.  **Install Telemetry DB:**

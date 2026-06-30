@@ -38,8 +38,8 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
     try {
       final data = await ApiService.getCurrentMetrics();
       if (mounted) setState(() { _data = data; _loading = false; });
-    } catch (e) {
-      log('Exception caught', error: e);}
+    } catch (error) {
+      log('Exception caught', error: error);}
   }
 
   @override
@@ -82,8 +82,8 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
   Widget _buildBarChart(List cores) {
     final barGroups = <BarChartGroupData>[];
     
-    for (int i = 0; i < cores.length; i++) {
-      final core = cores[i] as Map? ?? {};
+    for (int index = 0; index < cores.length; index++) {
+      final core = cores[index] as Map? ?? {};
       final rawPct = core['busy_pct'];
       final pct = (rawPct is num) ? rawPct.toDouble() : 0.0;
       
@@ -93,7 +93,7 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
 
       barGroups.add(
         BarChartGroupData(
-          x: i,
+          x: index,
           barRods: [
             BarChartRodData(
               toY: pct,

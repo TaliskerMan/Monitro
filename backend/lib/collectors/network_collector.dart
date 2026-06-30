@@ -40,9 +40,9 @@ class NetworkCollector {
         });
       }
       return {'platform': 'linux', 'interfaces': interfaces};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -52,8 +52,8 @@ class NetworkCollector {
       final allResult = await Process.run('netstat', ['-ib'], runInShell: true);
       final lines = allResult.stdout.toString().split('\n');
       final interfaces = <Map<String, dynamic>>[];
-      for (int i = 1; i < lines.length; i++) {
-        final parts = lines[i].trim().split(RegExp(r'\s+'));
+      for (int index = 1; index < lines.length; index++) {
+        final parts = lines[index].trim().split(RegExp(r'\s+'));
         if (parts.length < 10) continue;
         interfaces.add({
           'interface':  parts[0],
@@ -66,9 +66,9 @@ class NetworkCollector {
         });
       }
       return {'platform': 'macos', 'interfaces': interfaces};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -81,9 +81,9 @@ class NetworkCollector {
         ],
       );
       return {'platform': 'windows', 'raw': result.stdout.toString()};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 }

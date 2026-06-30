@@ -38,9 +38,9 @@ class DiskCollector {
         });
       }
       return {'platform': 'linux', 'devices': devices};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -58,19 +58,19 @@ class DiskCollector {
         final devNames = lines[0].trim().split(RegExp(r'\s+'));
         final values = lines[2].trim().split(RegExp(r'\s+'));
         // 3 values per device: KB/t, tps, MB/s
-        for (int i = 0; i < devNames.length && i * 3 + 2 < values.length; i++) {
+        for (int index = 0; index < devNames.length && index * 3 + 2 < values.length; index++) {
           devices.add({
-            'device': devNames[i],
-            'kb_per_transfer': double.tryParse(values[i * 3]) ?? 0,
-            'transfers_per_sec': double.tryParse(values[i * 3 + 1]) ?? 0,
-            'mb_per_sec': double.tryParse(values[i * 3 + 2]) ?? 0,
+            'device': devNames[index],
+            'kb_per_transfer': double.tryParse(values[index * 3]) ?? 0,
+            'transfers_per_sec': double.tryParse(values[index * 3 + 1]) ?? 0,
+            'mb_per_sec': double.tryParse(values[index * 3 + 2]) ?? 0,
           });
         }
       }
       return {'platform': 'macos', 'devices': devices};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -83,9 +83,9 @@ class DiskCollector {
         ],
       );
       return {'platform': 'windows', 'raw': result.stdout.toString()};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 }

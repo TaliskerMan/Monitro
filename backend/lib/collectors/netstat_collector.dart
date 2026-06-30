@@ -28,9 +28,9 @@ class NetstatCollector {
       await _enrichWithDomains(connections);
       final summary = _summarize(connections);
       return {'platform': 'linux', 'connections': connections, 'summary': summary};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -44,9 +44,9 @@ class NetstatCollector {
       await _enrichWithDomains(connections);
       final summary = _summarize(connections);
       return {'platform': 'macos', 'connections': connections, 'summary': summary};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -59,9 +59,9 @@ class NetstatCollector {
       await _enrichWithDomains(connections);
       final summary = _summarize(connections);
       return {'platform': 'windows', 'connections': connections, 'summary': summary};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -71,9 +71,9 @@ class NetstatCollector {
   
   static Future<void> _enrichWithDomains(List<Map<String, dynamic>> connections) async {
     // Resolve domains concurrently for efficiency
-    await Future.wait(connections.map((c) async {
+    await Future.wait(connections.map((connection) async {
       String remoteIp = '';
-      final remote = c['remote'] as String;
+      final remote = connection['remote'] as String;
       
       // Extract IP from address string
       if (remote.isNotEmpty && remote != '*') {
@@ -93,28 +93,29 @@ class NetstatCollector {
       }
 
       if (remoteIp.isEmpty || remoteIp == '*' || remoteIp == '0.0.0.0' || remoteIp == '127.0.0.1' || remoteIp == '::' || remoteIp == '::1') {
-        c['remote_domain'] = '';
+        connection['remote_domain'] = '';
         return;
       }
 
       if (_dnsCache.containsKey(remoteIp)) {
-        c['remote_domain'] = _dnsCache[remoteIp];
+        connection['remote_domain'] = _dnsCache[remoteIp];
+      } else {
         return;
       }
 
       try {
         final addrs = await InternetAddress.lookup(remoteIp).timeout(const Duration(milliseconds: 150));
         if (addrs.isNotEmpty && addrs.first.host != remoteIp) {
+          connection['remote_domain'] = addrs.first.host;
           _dnsCache[remoteIp] = addrs.first.host;
-          c['remote_domain'] = addrs.first.host;
         } else {
           _dnsCache[remoteIp] = '';
-          c['remote_domain'] = '';
+          connection['remote_domain'] = '';
         }
       } catch (_) {
       log('Exception caught', error: _);
         _dnsCache[remoteIp] = '';
-        c['remote_domain'] = '';
+        connection['remote_domain'] = '';
       }
     }));
   }

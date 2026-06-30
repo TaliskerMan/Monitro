@@ -41,8 +41,8 @@ class ApiService {
       // Dev tree.
       '${Directory.current.path}/certs/ca.crt',
     ];
-    for (final c in candidates) {
-      if (c.isNotEmpty && File(c).existsSync()) return c;
+    for (final candidate in candidates) {
+      if (candidate.isNotEmpty && File(candidate).existsSync()) return candidate;
     }
     return null;
   }
@@ -58,8 +58,8 @@ class ApiService {
         try {
           _pinnedContext = SecurityContext(withTrustedRoots: false)
             ..setTrustedCertificates(ca);
-        } catch (e) {
-          log('Failed to load pinned CA; falling back', error: e);
+        } catch (error) {
+          log('Failed to load pinned CA; falling back', error: error);
           _pinnedContext = null;
         }
       } else {
@@ -85,10 +85,10 @@ class ApiService {
       final response =
           await _client.get(Uri.parse('$_baseUrl/health'), headers: _headers);
       return response.statusCode == 200;
-    } catch (e) {
+    } catch (error) {
       // The server listens with TLS on 8443; there is no HTTP fallback to try
       // (an http:// request to a TLS port cannot succeed), so report unhealthy.
-      log('Backend health check failed', error: e);
+      log('Backend health check failed', error: error);
       return false;
     }
   }
@@ -131,9 +131,9 @@ class ApiService {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
       return {'error': 'HTTP ${response.statusCode}'};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -165,9 +165,9 @@ class ApiService {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
       return {'error': 'HTTP ${response.statusCode}'};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 }

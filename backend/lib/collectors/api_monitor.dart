@@ -27,9 +27,9 @@ class ApiMonitor {
         'ss', ['-tnp', 'state', 'established'], runInShell: true,
       );
       return _parseSsApiCalls(result.stdout.toString(), 'linux');
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -41,9 +41,9 @@ class ApiMonitor {
         runInShell: true,
       );
       return _parseLsofApiCalls(result.stdout.toString(), 'macos');
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -53,9 +53,9 @@ class ApiMonitor {
         'netstat', ['-anob'], runInShell: true,
       );
       return _parseWindowsNetstatApiCalls(result.stdout.toString());
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -87,7 +87,7 @@ class ApiMonitor {
     return {
       'platform': platform,
       'api_callers': callers.entries
-          .map((e) => {'process': e.key, 'connections': e.value})
+          .map((entry) => {'process': entry.key, 'connections': entry.value})
           .toList()
         ..sort((a, b) => (b['connections'] as int).compareTo(a['connections'] as int)),
     };
@@ -115,7 +115,7 @@ class ApiMonitor {
     return {
       'platform': platform,
       'api_callers': callers.entries
-          .map((e) => {'process': e.key, 'connections': e.value})
+          .map((entry) => {'process': entry.key, 'connections': entry.value})
           .toList()
         ..sort((a, b) => (b['connections'] as int).compareTo(a['connections'] as int)),
     };
@@ -141,7 +141,7 @@ class ApiMonitor {
     return {
       'platform': 'windows',
       'api_callers': callers.entries
-          .map((e) => {'process': e.key, 'connections': e.value})
+          .map((entry) => {'process': entry.key, 'connections': entry.value})
           .toList(),
     };
   }

@@ -18,8 +18,8 @@ class FsCollector {
       final result = await Process.run('df', ['-P', '-k'], runInShell: true);
       final lines = result.stdout.toString().split('\n');
       final mounts = <Map<String, dynamic>>[];
-      for (int i = 1; i < lines.length; i++) {
-        final parts = lines[i].trim().split(RegExp(r'\s+'));
+      for (int index = 1; index < lines.length; index++) {
+        final parts = lines[index].trim().split(RegExp(r'\s+'));
         if (parts.length < 6) continue;
         final totalKb = int.tryParse(parts[1]) ?? 0;
         final usedKb  = int.tryParse(parts[2]) ?? 0;
@@ -34,9 +34,9 @@ class FsCollector {
         });
       }
       return {'platform': Platform.operatingSystem, 'mounts': mounts};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -50,9 +50,9 @@ class FsCollector {
         ],
       );
       return {'platform': 'windows', 'raw': result.stdout.toString()};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 }

@@ -51,9 +51,9 @@ class MemoryCollector {
         'used_pct':       totalKb > 0 ? (usedKb / totalKb * 100) : 0.0,
         'swap_used_pct':  swapTotalKb > 0 ? (swapUsedKb / swapTotalKb * 100) : 0.0,
       };
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -103,9 +103,9 @@ class MemoryCollector {
         'wired_bytes':  wiredPages * pageSize,
         'used_pct':     totalBytes > 0 ? (usedBytes / totalBytes * 100) : 0.0,
       };
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -133,9 +133,9 @@ class MemoryCollector {
         'used_kb':   usedKb,
         'used_pct':  totalKb > 0 ? (usedKb / totalKb * 100) : 0.0,
       };
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 }

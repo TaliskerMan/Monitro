@@ -41,8 +41,8 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
           }
         });
       }
-    } catch (e) {
-      log('Exception caught', error: e);
+    } catch (error) {
+      log('Exception caught', error: error);
       // Fall back to journalctl if the log file doesn't exist yet
       try {
         final result = await Process.run('journalctl', [
@@ -61,8 +61,8 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
             }
           });
         }
-      } catch (e) {
-      log('Exception caught', error: e);
+      } catch (error) {
+        log('Exception caught', error: error);
         if (mounted) {
           setState(() {
             _logContent = '(Unable to read logs)';
@@ -83,8 +83,8 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
           _isLoading = false;
         });
       }
-    } catch (e) {
-      log('Exception caught', error: e);
+    } catch (error) {
+      log('Exception caught', error: error);
       if (mounted) {
         setState(() {
           _isServiceOn = false;
@@ -166,12 +166,12 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
           );
         }
       }
-    } catch (e) {
-      log('Exception caught', error: e);
+    } catch (error) {
+      log('Exception caught', error: error);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: $e'), backgroundColor: AppTheme.danger),
+              content: Text('Error: $error'), backgroundColor: AppTheme.danger),
         );
       }
     } finally {

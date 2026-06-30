@@ -50,9 +50,9 @@ class BackendService {
         logFile.writeAsBytesSync(data, mode: FileMode.append);
       });
       return true;
-    } catch (e) {
-      log('Exception caught', error: e);
-      debugPrint('Failed to start collector: $e');
+    } catch (error) {
+      log('Exception caught', error: error);
+      debugPrint('Failed to start collector: $error');
       return false;
     }
   }
@@ -67,9 +67,9 @@ class BackendService {
         await Process.run('pkill', ['-f', 'monitro_collector']);
       }
       debugPrint('Cleaned up any existing backend collector processes.');
-    } catch (e) {
-      log('Exception caught', error: e);
-      debugPrint('Failed to clean up old processes: $e');
+    } catch (error) {
+      log('Exception caught', error: error);
+      debugPrint('Failed to clean up old processes: $error');
     }
   }
 
@@ -120,8 +120,8 @@ class BackendService {
     // Dev fallback (running from source via `flutter run`).
     candidates.add(p.join(Directory.current.path, 'backend', bin));
 
-    for (final c in candidates) {
-      if (c.isNotEmpty && File(c).existsSync()) return c;
+    for (final candidate in candidates) {
+      if (candidate.isNotEmpty && File(candidate).existsSync()) return candidate;
     }
     return candidates.last; // dev fallback path (may not exist; caller handles)
   }

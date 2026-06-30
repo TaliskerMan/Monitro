@@ -68,8 +68,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         // Success
         if (mounted) context.go('/');
       }
-    } catch (e) {
-      log('Exception caught', error: e);
+    } catch (error) {
+      log('Exception caught', error: error);
       setState(() => _error = 'Cannot connect to backend or database. Ensure MariaDB is running and credentials are correct.');
     } finally {
       if (mounted) setState(() => _testing = false);

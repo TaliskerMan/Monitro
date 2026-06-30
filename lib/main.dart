@@ -65,30 +65,30 @@ class MonitroApp extends StatelessWidget {
       routes: [
         GoRoute(
           path: '/setup',
-          builder: (c, s) => const SetupScreen(),
+          builder: (context, s) => const SetupScreen(),
         ),
         ShellRoute(
           builder: (context, state, child) => AppShell(child: child),
           routes: [
-            GoRoute(path: '/', builder: (c, s) => const DashboardScreen()),
+            GoRoute(path: '/', builder: (context, s) => const DashboardScreen()),
             GoRoute(
-                path: '/processes', builder: (c, s) => const ProcessesScreen()),
+                path: '/processes', builder: (context, s) => const ProcessesScreen()),
             GoRoute(
-                path: '/cpu-cores', builder: (c, s) => const CpuCoresScreen()),
+                path: '/cpu-cores', builder: (context, s) => const CpuCoresScreen()),
             GoRoute(
                 path: '/connections',
-                builder: (c, s) => const ConnectionsScreen()),
-            GoRoute(path: '/users', builder: (c, s) => const UsersScreen()),
+                builder: (context, s) => const ConnectionsScreen()),
+            GoRoute(path: '/users', builder: (context, s) => const UsersScreen()),
             GoRoute(
                 path: '/api-calls',
-                builder: (c, s) => const ApiMonitorScreen()),
-            GoRoute(path: '/alerts', builder: (c, s) => const AlertsScreen()),
+                builder: (context, s) => const ApiMonitorScreen()),
+            GoRoute(path: '/alerts', builder: (context, s) => const AlertsScreen()),
             GoRoute(
                 path: '/service-control',
-                builder: (c, s) => const ServiceControlScreen()),
+                builder: (context, s) => const ServiceControlScreen()),
             GoRoute(
-                path: '/settings', builder: (c, s) => const SettingsScreen()),
-            GoRoute(path: '/about', builder: (c, s) => const AboutScreen()),
+                path: '/settings', builder: (context, s) => const SettingsScreen()),
+            GoRoute(path: '/about', builder: (context, s) => const AboutScreen()),
           ],
         ),
       ],
@@ -124,7 +124,7 @@ class AppShell extends StatelessWidget {
             minExtendedWidth: 200,
             backgroundColor: AppTheme.surface,
             selectedIndex: _navIndex(location),
-            onDestinationSelected: (i) => _navigate(context, i),
+            onDestinationSelected: (index) => _navigate(context, index),
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(children: [
@@ -216,8 +216,8 @@ class AppShell extends StatelessWidget {
 
   /// Find sidebar destination index corresponding to the current active location path.
   int _navIndex(String location) {
-    final i = _navRoutes.indexOf(location);
-    return i < 0 ? 0 : i;
+    final index = _navRoutes.indexOf(location);
+    return index < 0 ? 0 : index;
   }
 
   /// Route navigation helper.

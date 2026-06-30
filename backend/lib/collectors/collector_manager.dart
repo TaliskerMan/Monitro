@@ -109,9 +109,9 @@ class CollectorManager {
 
       // Persist to MariaDB asynchronously
       await dbService.storeSnapshot(snapshot);
-    } catch (e, st) {
-      log('Exception caught', error: e, stackTrace: st);
-      _log.warning('Collection cycle error: $e', e, st);
+    } catch (error, st) {
+      log('Exception caught', error: error, stackTrace: st);
+      _log.warning('Collection cycle error: $error', error, st);
     }
   }
 }

@@ -37,9 +37,9 @@ class UserCollector {
         'sessions': sessions,
         'count':    sessions.length,
       };
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 
@@ -58,9 +58,9 @@ class UserCollector {
         sessions.add({'raw': line.trim()});
       }
       return {'platform': 'windows', 'sessions': sessions, 'count': sessions.length};
-    } catch (e) {
-      log('Exception caught', error: e);
-      return {'error': e.toString()};
+    } catch (error) {
+      log('Exception caught', error: error);
+      return {'error': error.toString()};
     }
   }
 }

@@ -57,23 +57,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     try {
       final data = await ApiService.getCurrentMetrics();
       if (!mounted) return;
-      final err = data['error'] as String?;
+      final errorString = data['error'] as String?;
       setState(() {
         _loading = false;
-        if (err != null) {
+        if (errorString != null) {
           // Surface the backend error; do NOT overwrite the last good metrics
           // with an error map (which would silently render every card blank).
-          _error = _friendlyError(err);
+          _error = _friendlyError(errorString);
         } else {
           _metrics = data;
           _error = null;
         }
       });
-    } catch (e) {
-      log('Exception caught', error: e);
+    } catch (error) {
+      log('Exception caught', error: error);
       if (mounted) {
         setState(() {
-          _error = _friendlyError(e.toString());
+          _error = _friendlyError(error.toString());
           _loading = false;
         });
       }
@@ -226,10 +226,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       final cores = cpu!['cores'] as List;
       // On macOS, per-core data is the aggregate repeated; label it honestly.
       final perCoreReal = cpu['per_core_real'] != false;
-      for (int i = 0; i < cores.length; i++) {
-        final corePct = cores[i]['busy_pct'];
+      for (int index = 0; index < cores.length; index++) {
+        final corePct = cores[index]['busy_pct'];
         cards.add(_MetricCard(
-          title: 'CPU Core $i',
+          title: 'CPU Core $index',
           icon: Icons.memory,
           value: '${((corePct ?? 0.0) as num).toStringAsFixed(1)}%',
           subtitle: perCoreReal ? 'utilization' : 'aggregate (not per-core)',
@@ -303,7 +303,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           if (_error != null) _buildErrorBanner(),
           if (system != null) _buildSystemHeader(system),
           const SizedBox(height: 20),
-          LayoutBuilder(builder: (ctx, constraints) {
+          LayoutBuilder(builder: (context, constraints) {
             final cols = constraints.maxWidth > 1200
                 ? 5
                 : constraints.maxWidth > 800
@@ -362,8 +362,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   /// Resolve color codes matching load percentages.
-  Color _pctColor(dynamic val) {
-    final pct = (val as num?)?.toDouble() ?? 0;
+  Color _pctColor(dynamic value) {
+    final pct = (value as num?)?.toDouble() ?? 0;
     if (pct >= 90) return AppTheme.danger;
     if (pct >= 70) return AppTheme.warning;
     return AppTheme.success;

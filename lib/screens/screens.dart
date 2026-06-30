@@ -109,22 +109,22 @@ class _ProcessTableState extends State<_ProcessTable> {
   Future<void> _killProcess(int pid, String name) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceAlt,
-        title: const Text('Kill Process?',
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        title: const Text('Kill Process',
             style: TextStyle(color: AppTheme.onSurface)),
-        content: Text(
-            'Are you sure you want to terminate $name (PID $pid)? This could destabilize the system.',
-            style: const TextStyle(color: AppTheme.muted)),
+        content: Text('Terminate $name (PID: $pid)?',
+            style: const TextStyle(color: AppTheme.onSurface)),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
+              onPressed: () => Navigator.pop(context, false),
               child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
               child: const Text('Kill',
                   style: TextStyle(
-                      color: AppTheme.danger, fontWeight: FontWeight.bold))),
+                      color: AppTheme.onSurface, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -164,41 +164,39 @@ class _ProcessTableState extends State<_ProcessTable> {
           const DataColumn(label: Text('STATE')),
           const DataColumn(label: Text('ACTION')),
         ],
-        rows: _sortedProcesses.map<DataRow>((p) {
-          final mappedP = p as Map;
-          final pid = mappedP['pid'] as int? ?? 0;
-          final cpuPct = (mappedP['cpu_pct'] as num?)?.toDouble() ?? 0;
-          final name = _parseName(mappedP['cmdline'] as String? ?? '');
-
-          return DataRow(cells: [
-            DataCell(Text('$pid')),
-            DataCell(Text(name.take(30),
-                style: const TextStyle(fontWeight: FontWeight.w500))),
-            DataCell(Text('${mappedP['user'] ?? ''}')),
-            DataCell(Text(
-              cpuPct.toStringAsFixed(1),
-              style: TextStyle(
-                  color: cpuPct >= 50 ? AppTheme.danger : AppTheme.onSurface,
-                  fontWeight:
-                      cpuPct > 10 ? FontWeight.bold : FontWeight.normal),
-            )),
-            DataCell(
-                Text(((mappedP['mem_pct'] as num?)?.toStringAsFixed(1)) ?? '')),
-            DataCell(Text('${mappedP['rss_kb'] ?? ''}')),
-            DataCell(Text(_mapState(mappedP['state'] as String? ?? ''),
-                style: const TextStyle(color: AppTheme.muted))),
-            DataCell(
-              IconButton(
-                icon: const Icon(Icons.delete_outline,
-                    color: AppTheme.danger, size: 18),
-                tooltip: 'Kill Process',
-                onPressed: () => _killProcess(pid, name),
-              ),
-            ),
-          ]);
-        }).toList(),
+        rows: _sortedProcesses.map<DataRow>((p) => _buildProcessRow(p as Map)).toList(),
       ),
     );
+  }
+
+  DataRow _buildProcessRow(Map mappedP) {
+    final pid = mappedP['pid'] as int? ?? 0;
+    final cpuPct = (mappedP['cpu_pct'] as num?)?.toDouble() ?? 0;
+    final name = _parseName(mappedP['cmdline'] as String? ?? '');
+
+    return DataRow(cells: [
+      DataCell(Text('$pid')),
+      DataCell(Text(name, style: const TextStyle(fontWeight: FontWeight.w500))),
+      DataCell(Text('${mappedP['user'] ?? ''}')),
+      DataCell(Text(
+        cpuPct.toStringAsFixed(1),
+        style: TextStyle(
+            color: cpuPct >= 50 ? AppTheme.danger : AppTheme.onSurface,
+            fontWeight: cpuPct > 10 ? FontWeight.bold : FontWeight.normal),
+      )),
+      DataCell(Text(((mappedP['mem_pct'] as num?)?.toStringAsFixed(1)) ?? '')),
+      DataCell(Text('${mappedP['rss_kb'] ?? ''}')),
+      DataCell(Text(_mapState(mappedP['state'] as String? ?? ''),
+          style: const TextStyle(color: AppTheme.muted))),
+      DataCell(
+        IconButton(
+          icon: const Icon(Icons.delete_outline,
+              color: AppTheme.danger, size: 18),
+          tooltip: 'Kill Process',
+          onPressed: () => _killProcess(pid, name),
+        ),
+      ),
+    ]);
   }
 }
 
@@ -226,16 +224,16 @@ class _ConnectionTables extends StatelessWidget {
     final conns = data['connections'] as List? ?? [];
 
     // Split into Inbound (listening/bound) and Outbound (active to external)
-    final inbound = conns.where((c) {
-      final state = c['state']?.toString().toUpperCase() ?? '';
-      final remote = c['remote']?.toString() ?? '';
+    final inbound = conns.where((connection) {
+      final state = connection['state']?.toString().toUpperCase() ?? '';
+      final remote = connection['remote']?.toString() ?? '';
       return state == 'LISTEN' ||
           state == 'BOUND' ||
           remote == '*' ||
           remote == '0.0.0.0:*';
     }).toList();
 
-    final outbound = conns.where((c) => !inbound.contains(c)).toList();
+    final outbound = conns.where((connection) => !inbound.contains(connection)).toList();
 
     return DefaultTabController(
       length: 2,
@@ -293,20 +291,20 @@ class _ConnectionTables extends StatelessWidget {
               const DataColumn(label: Text('STATE')),
             ]
           ],
-          rows: connections.map<DataRow>((c) {
-            final process = c['process']?.toString().isNotEmpty == true
-                ? c['process']
-                : 'Unnamed (${c['pid'] ?? '?'})';
-            final domain = c['remote_domain']?.toString() ?? '';
-            final remote = c['remote']?.toString() ?? '';
-            final state = c['state']?.toString() ?? '';
+          rows: connections.map<DataRow>((connection) {
+            final process = connection['process']?.toString().isNotEmpty == true
+                ? connection['process']
+                : 'Unnamed (${connection['pid'] ?? '?'})';
+            final domain = connection['remote_domain']?.toString() ?? '';
+            final remote = connection['remote']?.toString() ?? '';
+            final state = connection['state']?.toString() ?? '';
 
             if (isInbound) {
               return DataRow(cells: [
                 DataCell(Text(process.toString(),
                     style: const TextStyle(
                         color: AppTheme.accent, fontWeight: FontWeight.w500))),
-                DataCell(Text(c['local']?.toString() ?? '')),
+                DataCell(Text(connection['local']?.toString() ?? '')),
                 DataCell(Text(remote)),
                 DataCell(Text(domain,
                     style: const TextStyle(color: AppTheme.muted))),
@@ -364,17 +362,17 @@ class _UserList extends StatelessWidget {
     }
     return ListView.builder(
       itemCount: sessions.length,
-      itemBuilder: (ctx, i) {
-        final s = sessions[i] as Map;
+      itemBuilder: (context, index) {
+        final session = sessions[index] as Map;
         return ListTile(
           leading: const Icon(Icons.person, color: AppTheme.accent),
-          title: Text('${s['username']}',
+          title: Text('${session['username']}',
               style: const TextStyle(
-                  color: AppTheme.onSurface, fontWeight: FontWeight.w600)),
+                  color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
           subtitle: Text(
-              '${s['tty']} · from ${s['from_host']} · idle ${s['idle']}',
-              style: const TextStyle(color: AppTheme.muted, fontSize: 12)),
-          trailing: Text(s['current_cmd'] as String? ?? '',
+              '${session['tty']} · from ${session['from_host']} · idle ${session['idle']}',
+              style: const TextStyle(color: AppTheme.muted, fontSize: 13)),
+          trailing: Text(session['current_cmd'] as String? ?? '',
               style: const TextStyle(color: AppTheme.muted, fontSize: 11)),
         );
       },
@@ -411,13 +409,12 @@ class _ApiCallerList extends StatelessWidget {
     }
     return ListView.builder(
       itemCount: callers.length,
-      itemBuilder: (ctx, i) {
-        final c = callers[i] as Map;
-        final count = (c['connections'] as int?) ?? 0;
+      itemBuilder: (context, index) {
+        final caller = callers[index] as Map;
+        final count = (caller['connections'] as int?) ?? 0;
         return ListTile(
-          leading: Icon(Icons.api,
-              color: count > 10 ? AppTheme.danger : AppTheme.accent),
-          title: Text('${c['process']}',
+          leading: const Icon(Icons.api, color: AppTheme.accent),
+          title: Text('${caller['process']}',
               style: const TextStyle(
                   color: AppTheme.onSurface, fontWeight: FontWeight.w600)),
           trailing: Chip(
@@ -465,23 +462,21 @@ class _AlertList extends StatelessWidget {
     }
     return ListView.builder(
       itemCount: alerts.length,
-      itemBuilder: (ctx, i) {
-        final a = alerts[i] as Map;
-        final severity = a['severity'] as String? ?? 'info';
-        final color = severity == 'critical'
-            ? AppTheme.danger
-            : severity == 'warning'
-                ? AppTheme.warning
-                : AppTheme.accent;
+      itemBuilder: (context, index) {
+        final alert = alerts[index] as Map;
+        final severity = alert['severity'] as String? ?? 'info';
         return ListTile(
-          leading: Icon(Icons.warning_amber, color: color),
-          title: Text('${a['metric_name']}',
+          leading: Icon(
+            severity == 'critical' ? Icons.warning : Icons.info_outline,
+            color: severity == 'critical' ? AppTheme.danger : AppTheme.warning,
+          ),
+          title: Text('${alert['metric_name']}',
               style: const TextStyle(
-                  color: AppTheme.onSurface, fontWeight: FontWeight.w600)),
-          subtitle: Text('${a['message']}',
+                  color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
+          subtitle: Text('${alert['message']}',
+              style: const TextStyle(color: AppTheme.muted)),
+          trailing: Text('${alert['triggered_at']}',
               style: const TextStyle(color: AppTheme.muted, fontSize: 12)),
-          trailing: Text('${a['triggered_at']}',
-              style: const TextStyle(color: AppTheme.muted, fontSize: 11)),
         );
       },
     );
@@ -517,8 +512,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _version = '${info.version}+${info.buildNumber}';
         });
       }
-    } catch (e) {
-      log('Exception caught', error: e);}
+    } catch (error) {
+      log('Exception caught', error: error);}
   }
 
   /// Request network interfaces available from the current metrics.
@@ -532,8 +527,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _interfaces = ['All', ...interfacesRaw.keys.cast<String>()];
         });
       }
-    } catch (e) {
-      log('Exception caught', error: e);
+    } catch (error) {
+      log('Exception caught', error: error);
       // Ignore if backend isn't up
     }
   }
@@ -559,7 +554,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           dropdownColor: AppTheme.surfaceAlt,
           style: const TextStyle(color: AppTheme.onSurface),
           items: _interfaces
-              .map((i) => DropdownMenuItem(value: i, child: Text(i)))
+              .map((iface) => DropdownMenuItem(value: iface, child: Text(iface)))
               .toList(),
           onChanged: (val) {
             if (val != null) notifier.setNetworkInterface(val);
@@ -702,9 +697,3 @@ class _DataScreenState extends State<_DataScreen> {
                 : widget.builder(_data!),
       );
 }
-
-extension _StringTake on String {
-  /// Safely truncate strings to size limits.
-  String take(int n) => length > n ? substring(0, n) : this;
-}
-
