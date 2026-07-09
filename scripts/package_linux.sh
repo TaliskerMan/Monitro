@@ -8,10 +8,28 @@ VERSION=$(./scripts/increment_build.sh linux)
 BUILD_NAME="${VERSION%+*}"
 BUILD_NUMBER="${VERSION#*+}"
 
-ARCH="amd64"
+ARCH=$(dpkg --print-architecture)
 DEBFULLNAME="Chuck Talk"
 DEBEMAIL="chuck@nordheim.online"
 PACKAGE_NAME="monitro_${VERSION}_${ARCH}"
+
+# Fix clang++ linker issue on some arm64/Linux environments
+if [ -d "/usr/lib/gcc/aarch64-linux-gnu/13" ]; then
+    export LIBRARY_PATH="/usr/lib/gcc/aarch64-linux-gnu/13:${LIBRARY_PATH:-}"
+fi
+if [ -d "/usr/include/c++/13" ]; then
+    export CPLUS_INCLUDE_PATH="/usr/include/c++/13:/usr/include/aarch64-linux-gnu/c++/13:${CPLUS_INCLUDE_PATH:-}"
+fi
+
+UNAME_M=$(uname -m)
+if [ "$UNAME_M" = "x86_64" ]; then
+    FLUTTER_ARCH="x64"
+elif [ "$UNAME_M" = "aarch64" ]; then
+    FLUTTER_ARCH="arm64"
+else
+    FLUTTER_ARCH="$UNAME_M"
+fi
+
 BUILD_DIR="build/linux/deb/${PACKAGE_NAME}"
 
 # Build flutter
@@ -44,7 +62,7 @@ Description: Cross-platform local system observability platform
 EOF
 
 # Copy binaries
-cp -r build/linux/x64/release/bundle/* "${BUILD_DIR}/opt/monitro/"
+cp -r build/linux/${FLUTTER_ARCH}/release/bundle/* "${BUILD_DIR}/opt/monitro/"
 cp backend/monitro_collector "${BUILD_DIR}/opt/monitro/backend/"
 cp -r db "${BUILD_DIR}/opt/monitro/"
 
@@ -173,6 +191,7 @@ Icon=monitro
 Type=Application
 Categories=System;Monitor;
 Keywords=system;monitor;observability;metrics;
+StartupWMClass=online.nordheim.monitro
 EOF
 
 dpkg-deb --build "${BUILD_DIR}"
@@ -195,6 +214,26 @@ if gpg --list-keys "${DEBEMAIL}" &> /dev/null; then
 else
   echo "GPG Key for ${DEBEMAIL} not found. Skipping signing."
 fi
+
+# Copy to NOBuilds directory
+echo "Copying to NOBuilds directory..."
+NOBUILDS_DIR="${HOME}/NOBuilds/Monitro/v${VERSION}"
+mkdir -p "${NOBUILDS_DIR}"
+
+# Generate source code archive
+echo "Generating source tarball..."
+tar --exclude=build --exclude=.dart_tool --exclude=.git -czf "${NOBUILDS_DIR}/monitro_source.tar.gz" -C "../../.." .
+
+# Copy packages and signatures
+cp "${PACKAGE_NAME}.deb" "${NOBUILDS_DIR}/"
+cp "${PACKAGE_NAME}.deb.asc" "${NOBUILDS_DIR}/" || true
+cp "${PACKAGE_NAME}.deb.sha512" "${NOBUILDS_DIR}/" || true
+cp "chuck_pubkey.asc" "${NOBUILDS_DIR}/" || true
+
+# Copy license, readme, and sbom
+cp ../../../LICENSE "${NOBUILDS_DIR}/"
+cp ../../../README.md "${NOBUILDS_DIR}/"
+cp ../../../Audit/sbom.json "${NOBUILDS_DIR}/"
 
 echo "Release artifacts built successfully in build/linux/deb/"
 ls -la
