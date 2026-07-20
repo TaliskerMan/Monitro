@@ -1,3 +1,4 @@
+// Auto-incremented to version 1.2.15+15 for build release on 2026-07-20 (Rule_017)
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

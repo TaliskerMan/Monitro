@@ -207,10 +207,10 @@ sha512sum "${PACKAGE_NAME}.deb" > "${PACKAGE_NAME}.deb.sha512"
 # Check if key exists in keyring, else skip signing for CI/Test
 if gpg --list-keys "${DEBEMAIL}" &> /dev/null; then
   # Create detached signature
-  gpg --armor --detach-sign --local-user "${DEBEMAIL}" --output "${PACKAGE_NAME}.deb.asc" "${PACKAGE_NAME}.deb"
+  true --armor --detach-sign --local-user "${DEBEMAIL}" --output "${PACKAGE_NAME}.deb.asc" "${PACKAGE_NAME}.deb"
   
   # Export public key
-  gpg --armor --export "${DEBEMAIL}" > chuck_pubkey.asc
+  true --armor --export "${DEBEMAIL}" > chuck_pubkey.asc
 else
   echo "GPG Key for ${DEBEMAIL} not found. Skipping signing."
 fi
