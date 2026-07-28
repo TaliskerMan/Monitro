@@ -22,12 +22,18 @@ class NetstatCollector {
   static Future<Map<String, dynamic>> _collectLinux() async {
     try {
       final result = await Process.run(
-        'ss', ['-tnup', '--no-header'], runInShell: true,
+        'ss',
+        ['-tnup', '--no-header'],
+        runInShell: true,
       );
       final connections = _parseSSOutput(result.stdout.toString());
       await _enrichWithDomains(connections);
       final summary = _summarize(connections);
-      return {'platform': 'linux', 'connections': connections, 'summary': summary};
+      return {
+        'platform': 'linux',
+        'connections': connections,
+        'summary': summary
+      };
     } catch (error) {
       log('Exception caught', error: error);
       return {'error': error.toString()};
@@ -38,12 +44,18 @@ class NetstatCollector {
   static Future<Map<String, dynamic>> _collectMacOS() async {
     try {
       final result = await Process.run(
-        'lsof', ['-i', '-n', '-P'], runInShell: true,
+        'lsof',
+        ['-i', '-n', '-P'],
+        runInShell: true,
       );
       final connections = _parseLsofOutput(result.stdout.toString());
       await _enrichWithDomains(connections);
       final summary = _summarize(connections);
-      return {'platform': 'macos', 'connections': connections, 'summary': summary};
+      return {
+        'platform': 'macos',
+        'connections': connections,
+        'summary': summary
+      };
     } catch (error) {
       log('Exception caught', error: error);
       return {'error': error.toString()};
@@ -53,12 +65,18 @@ class NetstatCollector {
   static Future<Map<String, dynamic>> _collectWindows() async {
     try {
       final result = await Process.run(
-        'netstat', ['-ano'], runInShell: true,
+        'netstat',
+        ['-ano'],
+        runInShell: true,
       );
       final connections = _parseWindowsNetstat(result.stdout.toString());
       await _enrichWithDomains(connections);
       final summary = _summarize(connections);
-      return {'platform': 'windows', 'connections': connections, 'summary': summary};
+      return {
+        'platform': 'windows',
+        'connections': connections,
+        'summary': summary
+      };
     } catch (error) {
       log('Exception caught', error: error);
       return {'error': error.toString()};
@@ -68,56 +86,65 @@ class NetstatCollector {
   // ---------------------------------------------------------------------------
   // Domain Enrichment
   // ---------------------------------------------------------------------------
-  
-  static Future<void> _enrichWithDomains(List<Map<String, dynamic>> connections) async {
+
+  static Future<void> _enrichWithDomains(
+      List<Map<String, dynamic>> connections) async {
     // Resolve domains concurrently for efficiency
-    await Future.wait(connections.map((connection) async {
-      String remoteIp = '';
-      final remote = connection['remote'] as String;
-      
-      // Extract IP from address string
-      if (remote.isNotEmpty && remote != '*') {
-        if (remote.contains('->')) {
-           // lsof format IP->IP:PORT
-           final remPart = remote.split('->').last;
-           remoteIp = remPart.substring(0, remPart.lastIndexOf(':'));
-        } else {
-           final lastColon = remote.lastIndexOf(':');
-           if (lastColon > 0) {
-             remoteIp = remote.substring(0, lastColon);
-             if (remoteIp.startsWith('[') && remoteIp.endsWith(']')) {
-               remoteIp = remoteIp.substring(1, remoteIp.length - 1);
-             }
-           }
+    await Future.wait(
+      connections.map((connection) async {
+        var remoteIp = '';
+        final remote = connection['remote'] as String;
+
+        // Extract IP from address string
+        if (remote.isNotEmpty && remote != '*') {
+          if (remote.contains('->')) {
+            // lsof format IP->IP:PORT
+            final remPart = remote.split('->').last;
+            remoteIp = remPart.substring(0, remPart.lastIndexOf(':'));
+          } else {
+            final lastColon = remote.lastIndexOf(':');
+            if (lastColon > 0) {
+              remoteIp = remote.substring(0, lastColon);
+              if (remoteIp.startsWith('[') && remoteIp.endsWith(']')) {
+                remoteIp = remoteIp.substring(1, remoteIp.length - 1);
+              }
+            }
+          }
         }
-      }
 
-      if (remoteIp.isEmpty || remoteIp == '*' || remoteIp == '0.0.0.0' || remoteIp == '127.0.0.1' || remoteIp == '::' || remoteIp == '::1') {
-        connection['remote_domain'] = '';
-        return;
-      }
+        if (remoteIp.isEmpty ||
+            remoteIp == '*' ||
+            remoteIp == '0.0.0.0' ||
+            remoteIp == '127.0.0.1' ||
+            remoteIp == '::' ||
+            remoteIp == '::1') {
+          connection['remote_domain'] = '';
+          return;
+        }
 
-      if (_dnsCache.containsKey(remoteIp)) {
-        connection['remote_domain'] = _dnsCache[remoteIp];
-      } else {
-        return;
-      }
-
-      try {
-        final addrs = await InternetAddress.lookup(remoteIp).timeout(const Duration(milliseconds: 150));
-        if (addrs.isNotEmpty && addrs.first.host != remoteIp) {
-          connection['remote_domain'] = addrs.first.host;
-          _dnsCache[remoteIp] = addrs.first.host;
+        if (_dnsCache.containsKey(remoteIp)) {
+          connection['remote_domain'] = _dnsCache[remoteIp];
         } else {
+          return;
+        }
+
+        try {
+          final addrs = await InternetAddress.lookup(remoteIp)
+              .timeout(const Duration(milliseconds: 150));
+          if (addrs.isNotEmpty && addrs.first.host != remoteIp) {
+            connection['remote_domain'] = addrs.first.host;
+            _dnsCache[remoteIp] = addrs.first.host;
+          } else {
+            _dnsCache[remoteIp] = '';
+            connection['remote_domain'] = '';
+          }
+        } catch (err) {
+          log('Exception caught', error: err);
           _dnsCache[remoteIp] = '';
           connection['remote_domain'] = '';
         }
-      } catch (_) {
-      log('Exception caught', error: _);
-        _dnsCache[remoteIp] = '';
-        connection['remote_domain'] = '';
-      }
-    }));
+      }),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -129,16 +156,16 @@ class NetstatCollector {
     for (final line in output.split('\n')) {
       final parts = line.trim().split(RegExp(r'\s+'));
       if (parts.length < 5) continue;
-      
-      String process = '';
+
+      var process = '';
       int? pid;
-      
+
       // Try to extract process from users:(("process",pid=...,fd=...))
       for (final p in parts) {
         if (p.startsWith('users:((')) {
-          final pMatch = RegExp(r'"([^"]+)"').firstMatch(p);
+          final pMatch = RegExp('"([^"]+)"').firstMatch(p);
           if (pMatch != null) process = pMatch.group(1) ?? '';
-          
+
           final pidMatch = RegExp(r'pid=(\d+)').firstMatch(p);
           if (pidMatch != null) pid = int.tryParse(pidMatch.group(1) ?? '');
         }
@@ -146,11 +173,11 @@ class NetstatCollector {
 
       connections.add({
         'protocol': parts[0].toLowerCase(),
-        'state':    parts[1],
-        'local':    parts[4],
-        'remote':   parts.length > 5 ? parts[5] : '',
-        'process':  process,
-        'pid':      pid,
+        'state': parts[1],
+        'local': parts[4],
+        'remote': parts.length > 5 ? parts[5] : '',
+        'process': process,
+        'pid': pid,
       });
     }
     return connections;
@@ -162,7 +189,7 @@ class NetstatCollector {
     final lines = output.split('\n').skip(1);
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
-      
+
       // Split preserving some format: COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME
       final parts = line.trim().split(RegExp(r'\s+'));
       if (parts.length < 9) continue;
@@ -170,13 +197,14 @@ class NetstatCollector {
       final processName = parts[0];
       final pid = int.tryParse(parts[1]);
       final protocol = parts[7].toLowerCase(); // TCP or UDP
-      
-      String local = '';
-      String remote = '';
-      String state = '';
 
-      final namePart = parts.sublist(8).join(' '); // Could be *:49152 (LISTEN) or 10.0.0.2:123->1.2.3.4:443 (ESTABLISHED)
-      
+      var local = '';
+      var remote = '';
+      var state = '';
+
+      final namePart = parts.sublist(8).join(
+          ' '); // Could be *:49152 (LISTEN) or 10.0.0.2:123->1.2.3.4:443 (ESTABLISHED)
+
       // Extract state
       final stateMatch = RegExp(r'\(([^)]+)\)$').firstMatch(namePart);
       if (stateMatch != null) {
@@ -186,8 +214,9 @@ class NetstatCollector {
       }
 
       // Clean name
-      String addressStr = namePart.replaceAll(RegExp(r'\s*\([^)]+\)$'), '').trim();
-      
+      final addressStr =
+          namePart.replaceAll(RegExp(r'\s*\([^)]+\)$'), '').trim();
+
       if (addressStr.contains('->')) {
         final pair = addressStr.split('->');
         local = pair[0];
@@ -201,11 +230,11 @@ class NetstatCollector {
 
       connections.add({
         'protocol': protocol,
-        'local':    local,
-        'remote':   remote,
-        'process':  processName,
-        'pid':      pid,
-        'state':    state,
+        'local': local,
+        'remote': remote,
+        'process': processName,
+        'pid': pid,
+        'state': state,
       });
     }
     return connections;
@@ -217,24 +246,24 @@ class NetstatCollector {
       final parts = line.trim().split(RegExp(r'\s+'));
       if (parts.length < 4) continue;
       if (parts[0] != 'TCP' && parts[0] != 'UDP') continue;
-      
-      String process = '';
+
+      const process = '';
       int? pid;
-      
+
       // On Windows netstat -ano, PID is the last column (Column 4 for UDP, 5 for TCP)
       if (parts[0] == 'TCP' && parts.length >= 5) {
         pid = int.tryParse(parts[4]);
       } else if (parts[0] == 'UDP' && parts.length >= 4) {
         pid = int.tryParse(parts[3]);
       }
-      
+
       connections.add({
         'protocol': parts[0].toLowerCase(),
-        'local':    parts[1],
-        'remote':   parts[2],
-        'state':    parts[0] == 'TCP' ? parts[3] : 'UDP',
-        'process':  process,
-        'pid':      pid,
+        'local': parts[1],
+        'remote': parts[2],
+        'state': parts[0] == 'TCP' ? parts[3] : 'UDP',
+        'process': process,
+        'pid': pid,
       });
     }
     return connections;

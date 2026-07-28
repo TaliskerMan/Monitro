@@ -5,10 +5,11 @@
 // NOT positional ? placeholders with a List. All execute() calls must pass a Map.
 
 import 'dart:developer';
-import 'package:mysql_client/mysql_client.dart';
-import 'package:logging/logging.dart';
-import 'package:yaml/yaml.dart';
 import 'dart:io';
+
+import 'package:logging/logging.dart';
+import 'package:mysql_client/mysql_client.dart';
+import 'package:yaml/yaml.dart';
 
 final _log = Logger('MariaDbService');
 
@@ -17,14 +18,14 @@ final _log = Logger('MariaDbService');
 /// Coordinates connection lifecycles, schema structure migrations, and
 /// persistent time-series metrics logging routines for system state snapshots.
 class MariaDbService {
+  /// Instantiates a new [MariaDbService] with configuration directives.
+  MariaDbService(this.config);
+
   /// YAML dynamic configuration mapping database connection parameters.
   final YamlMap config;
 
   /// Internal MySQL active connection reference pool.
   MySQLConnection? _conn;
-
-  /// Instantiates a new [MariaDbService] with configuration directives.
-  MariaDbService(this.config);
 
   // ---------------------------------------------------------------------------
   // Connection
@@ -32,12 +33,12 @@ class MariaDbService {
   /// Connects to the MariaDB server using parameters specified in the configuration.
   Future<void> connect() async {
     _conn = await MySQLConnection.createConnection(
-      host:         config['host']     as String? ?? '127.0.0.1',
-      port:         config['port']     as int?    ?? 3306,
-      databaseName: config['name']     as String? ?? 'monitro',
-      userName:     config['user']     as String? ?? 'monitro_user',
-      password:     config['password'] as String? ?? '',
-      secure:       false,
+      host: config['host'] as String? ?? '127.0.0.1',
+      port: config['port'] as int? ?? 3306,
+      databaseName: config['name'] as String? ?? 'monitro',
+      userName: config['user'] as String? ?? 'monitro_user',
+      password: config['password'] as String? ?? '',
+      secure: false,
     );
     await _conn!.connect();
     _log.info('Connected to MariaDB at ${config['host']}:${config['port']}');
@@ -77,7 +78,8 @@ class MariaDbService {
     }
 
     if (migrationsDir == null) {
-      _log.warning('Migrations directory not found. Checked: $installRoot/db/migrations and /opt/monitro/db/migrations');
+      _log.warning(
+          'Migrations directory not found. Checked: $installRoot/db/migrations and /opt/monitro/db/migrations');
       return;
     }
 
@@ -90,7 +92,8 @@ class MariaDbService {
       '  applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
       ')',
     );
-    final appliedRows = await _conn!.execute('SELECT filename FROM schema_migrations');
+    final appliedRows =
+        await _conn!.execute('SELECT filename FROM schema_migrations');
     final applied = <String>{
       for (final row in appliedRows.rows) row.colByName('filename') ?? '',
     };
@@ -149,15 +152,15 @@ class MariaDbService {
     if (_conn == null) return;
     final ts = snapshot['collected_at'] as String;
 
-    await _storeSystemMetrics(snapshot['system'],    ts);
-    await _storeCpuMetrics(snapshot['cpu'],          ts);
-    await _storeMemoryMetrics(snapshot['memory'],    ts);
-    await _storeDiskMetrics(snapshot['disk'],        ts);
-    await _storeNetworkMetrics(snapshot['network'],  ts);
-    await _storeProcesses(snapshot['processes'],     ts);
-    await _storeUsers(snapshot['users'],             ts);
-    await _storeConnections(snapshot['netstat'],     ts);
-    await _storeApiCalls(snapshot['api_calls'],      ts);
+    await _storeSystemMetrics(snapshot['system'], ts);
+    await _storeCpuMetrics(snapshot['cpu'], ts);
+    await _storeMemoryMetrics(snapshot['memory'], ts);
+    await _storeDiskMetrics(snapshot['disk'], ts);
+    await _storeNetworkMetrics(snapshot['network'], ts);
+    await _storeProcesses(snapshot['processes'], ts);
+    await _storeUsers(snapshot['users'], ts);
+    await _storeConnections(snapshot['netstat'], ts);
+    await _storeApiCalls(snapshot['api_calls'], ts);
   }
 
   // ---------------------------------------------------------------------------
@@ -168,8 +171,8 @@ class MariaDbService {
     if (data == null || data['error'] != null) return;
     final m = data as Map;
     final rows = <List<dynamic>>[
-      if (m['load_1']  != null) ['system.load.1',  m['load_1'],  null],
-      if (m['load_5']  != null) ['system.load.5',  m['load_5'],  null],
+      if (m['load_1'] != null) ['system.load.1', m['load_1'], null],
+      if (m['load_5'] != null) ['system.load.5', m['load_5'], null],
       if (m['load_15'] != null) ['system.load.15', m['load_15'], null],
     ];
     await _batchInsertMetrics(rows, ts);
@@ -179,18 +182,28 @@ class MariaDbService {
     if (data == null || data['error'] != null) return;
     final m = data as Map;
     if (m['busy_pct'] != null) {
-      await _batchInsertMetrics([
-        ['cpu.busy_pct', m['busy_pct'], null],
-        ['cpu.idle_pct', m['idle_pct'] ?? (100.0 - (m['busy_pct'] as num)), null],
-      ], ts);
+      await _batchInsertMetrics(
+        [
+          ['cpu.busy_pct', m['busy_pct'], null],
+          [
+            'cpu.idle_pct',
+            m['idle_pct'] ?? (100.0 - (m['busy_pct'] as num)),
+            null
+          ],
+        ],
+        ts,
+      );
     }
     if (m['cores'] != null) {
       for (final core in m['cores'] as List) {
         final name = core['core'] as String;
-        await _batchInsertMetrics([
-          ['cpu.ticks.total', core['total'], name],
-          ['cpu.ticks.busy',  core['busy'],  name],
-        ], ts);
+        await _batchInsertMetrics(
+          [
+            ['cpu.ticks.total', core['total'], name],
+            ['cpu.ticks.busy', core['busy'], name],
+          ],
+          ts,
+        );
       }
     }
   }
@@ -199,12 +212,18 @@ class MariaDbService {
     if (data == null || data['error'] != null) return;
     final m = data as Map;
     final rows = <List<dynamic>>[];
-    if (m['used_pct']     != null) rows.add(['mem.used_pct',     m['used_pct'],     null]);
-    if (m['total_kb']     != null) rows.add(['mem.total_kb',     m['total_kb'],     null]);
-    if (m['used_kb']      != null) rows.add(['mem.used_kb',      m['used_kb'],      null]);
-    if (m['total_bytes']  != null) rows.add(['mem.total_bytes',  m['total_bytes'],  null]);
-    if (m['used_bytes']   != null) rows.add(['mem.used_bytes',   m['used_bytes'],   null]);
-    if (m['swap_used_pct'] != null) rows.add(['swap.used_pct',   m['swap_used_pct'], null]);
+    if (m['used_pct'] != null) rows.add(['mem.used_pct', m['used_pct'], null]);
+    if (m['total_kb'] != null) rows.add(['mem.total_kb', m['total_kb'], null]);
+    if (m['used_kb'] != null) rows.add(['mem.used_kb', m['used_kb'], null]);
+    if (m['total_bytes'] != null) {
+      rows.add(['mem.total_bytes', m['total_bytes'], null]);
+    }
+    if (m['used_bytes'] != null) {
+      rows.add(['mem.used_bytes', m['used_bytes'], null]);
+    }
+    if (m['swap_used_pct'] != null) {
+      rows.add(['swap.used_pct', m['swap_used_pct'], null]);
+    }
     await _batchInsertMetrics(rows, ts);
   }
 
@@ -214,9 +233,15 @@ class MariaDbService {
     for (final dev in devices) {
       final label = dev['device'] as String;
       final rows = <List<dynamic>>[];
-      if (dev['mb_per_sec']     != null) rows.add(['disk.mb_per_sec',      dev['mb_per_sec'],      label]);
-      if (dev['sectors_read']   != null) rows.add(['disk.sectors_read',    dev['sectors_read'],    label]);
-      if (dev['sectors_written'] != null) rows.add(['disk.sectors_written', dev['sectors_written'], label]);
+      if (dev['mb_per_sec'] != null) {
+        rows.add(['disk.mb_per_sec', dev['mb_per_sec'], label]);
+      }
+      if (dev['sectors_read'] != null) {
+        rows.add(['disk.sectors_read', dev['sectors_read'], label]);
+      }
+      if (dev['sectors_written'] != null) {
+        rows.add(['disk.sectors_written', dev['sectors_written'], label]);
+      }
       await _batchInsertMetrics(rows, ts);
     }
   }
@@ -227,12 +252,15 @@ class MariaDbService {
     for (final iface in interfaces) {
       final label = iface['interface'] as String;
       if (label == 'lo' || label.startsWith('Loopback')) continue;
-      await _batchInsertMetrics([
-        ['net.rx_bytes',   iface['rx_bytes']   ?? 0, label],
-        ['net.tx_bytes',   iface['tx_bytes']   ?? 0, label],
-        ['net.rx_packets', iface['rx_packets'] ?? 0, label],
-        ['net.tx_packets', iface['tx_packets'] ?? 0, label],
-      ], ts);
+      await _batchInsertMetrics(
+        [
+          ['net.rx_bytes', iface['rx_bytes'] ?? 0, label],
+          ['net.tx_bytes', iface['tx_bytes'] ?? 0, label],
+          ['net.rx_packets', iface['rx_packets'] ?? 0, label],
+          ['net.tx_packets', iface['tx_packets'] ?? 0, label],
+        ],
+        ts,
+      );
     }
   }
 
@@ -241,27 +269,28 @@ class MariaDbService {
     final processes = (data as Map)['processes'] as List? ?? [];
     for (final proc in processes.take(50)) {
       try {
-        final name = ((proc['cmdline'] as String? ?? '').split('/').last.split(' ').first);
+        final name =
+            (proc['cmdline'] as String? ?? '').split('/').last.split(' ').first;
         await _conn!.execute(
           'INSERT INTO processes '
           '(collected_at, pid, ppid, name, username, cpu_pct, mem_pct, mem_rss_kb, state, num_threads, cmdline) '
           'VALUES (:ts, :pid, :ppid, :name, :user, :cpu, :mem, :rss, :state, :threads, :cmd)',
           {
-            'ts':      ts,
-            'pid':     proc['pid'],
-            'ppid':    proc['ppid'],
-            'name':    name,
-            'user':    proc['user'] ?? '',
-            'cpu':     proc['cpu_pct'] ?? 0.0,
-            'mem':     proc['mem_pct'] ?? 0.0,
-            'rss':     proc['rss_kb'] ?? 0,
-            'state':   proc['state'] ?? '',
+            'ts': ts,
+            'pid': proc['pid'],
+            'ppid': proc['ppid'],
+            'name': name,
+            'user': proc['user'] ?? '',
+            'cpu': proc['cpu_pct'] ?? 0.0,
+            'mem': proc['mem_pct'] ?? 0.0,
+            'rss': proc['rss_kb'] ?? 0,
+            'state': proc['state'] ?? '',
             'threads': proc['threads'] ?? 1,
-            'cmd':     proc['cmdline'] ?? '',
+            'cmd': proc['cmdline'] ?? '',
           },
         );
       } catch (e) {
-      log('Exception caught', error: e);
+        log('Exception caught', error: e);
         _log.fine('Process insert error: $e');
       }
     }
@@ -276,16 +305,16 @@ class MariaDbService {
           'INSERT INTO user_sessions (collected_at, username, tty, from_host, idle_time, current_cmd) '
           'VALUES (:ts, :user, :tty, :host, :idle, :cmd)',
           {
-            'ts':   ts,
+            'ts': ts,
             'user': s['username'] ?? '',
-            'tty':  s['tty']      ?? '',
+            'tty': s['tty'] ?? '',
             'host': s['from_host'] ?? '',
-            'idle': s['idle']     ?? '',
-            'cmd':  s['current_cmd'] ?? '',
+            'idle': s['idle'] ?? '',
+            'cmd': s['current_cmd'] ?? '',
           },
         );
       } catch (e) {
-      log('Exception caught', error: e);
+        log('Exception caught', error: e);
         _log.fine('User session insert error: $e');
       }
     }
@@ -309,13 +338,13 @@ class MariaDbService {
           'INSERT INTO api_calls (collected_at, process_name, call_count) '
           'VALUES (:ts, :proc, :count)',
           {
-            'ts':    ts,
-            'proc':  caller['process']     ?? '',
+            'ts': ts,
+            'proc': caller['process'] ?? '',
             'count': caller['connections'] ?? 0,
           },
         );
       } catch (e) {
-      log('Exception caught', error: e);
+        log('Exception caught', error: e);
         _log.fine('API call insert error: $e');
       }
     }
@@ -329,14 +358,14 @@ class MariaDbService {
           'INSERT INTO metrics (collected_at, metric_name, value, label) '
           'VALUES (:ts, :name, :val, :label)',
           {
-            'ts':    ts,
-            'name':  row[0],
-            'val':   row[1],
+            'ts': ts,
+            'name': row[0],
+            'val': row[1],
             'label': row.length > 2 ? row[2] : null,
           },
         );
       } catch (e) {
-      log('Exception caught', error: e);
+        log('Exception caught', error: e);
         _log.fine('Metric insert error (${row[0]}): $e');
       }
     }
@@ -417,15 +446,22 @@ class MariaDbService {
 
   /// Deletes logs older than [retentionDays] to prevent disk overflow.
   Future<void> runRetentionCleanup(int retentionDays) async {
-    _log.info('Running retention cleanup (keeping last $retentionDays days)...');
-    final tables = ['metrics', 'processes', 'connections', 'user_sessions', 'api_calls'];
+    _log.info(
+        'Running retention cleanup (keeping last $retentionDays days)...');
+    final tables = [
+      'metrics',
+      'processes',
+      'connections',
+      'user_sessions',
+      'api_calls'
+    ];
     for (final table in tables) {
       try {
         await _conn!.execute(
           'DELETE FROM $table WHERE collected_at < DATE_SUB(NOW(), INTERVAL $retentionDays DAY)',
         );
       } catch (e) {
-      log('Exception caught', error: e);
+        log('Exception caught', error: e);
         _log.warning('Retention cleanup error on $table: $e');
       }
     }

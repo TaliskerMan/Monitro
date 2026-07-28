@@ -1,23 +1,23 @@
 // Monitro: CollectorManager
 // Orchestrates all platform-aware metric collectors and persists results to MariaDB.
 
-import 'dart:developer';
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
-import 'package:logging/logging.dart';
-import 'package:yaml/yaml.dart';
 
-import '../storage/mariadb_service.dart';
-import 'system_collector.dart';
-import 'cpu_collector.dart';
-import 'memory_collector.dart';
-import 'disk_collector.dart';
-import 'fs_collector.dart';
-import 'network_collector.dart';
-import 'netstat_collector.dart';
-import 'process_collector.dart';
-import 'user_collector.dart';
-import 'api_monitor.dart';
+import 'package:logging/logging.dart';
+import 'package:monitro_collector/collectors/api_monitor.dart';
+import 'package:monitro_collector/collectors/cpu_collector.dart';
+import 'package:monitro_collector/collectors/disk_collector.dart';
+import 'package:monitro_collector/collectors/fs_collector.dart';
+import 'package:monitro_collector/collectors/memory_collector.dart';
+import 'package:monitro_collector/collectors/netstat_collector.dart';
+import 'package:monitro_collector/collectors/network_collector.dart';
+import 'package:monitro_collector/collectors/process_collector.dart';
+import 'package:monitro_collector/collectors/system_collector.dart';
+import 'package:monitro_collector/collectors/user_collector.dart';
+import 'package:monitro_collector/storage/mariadb_service.dart';
+import 'package:yaml/yaml.dart';
 
 final _log = Logger('CollectorManager');
 
@@ -27,6 +27,12 @@ final _log = Logger('CollectorManager');
 /// users, and API monitor collectors, caches the latest snapshot, and dispatches
 /// snapshots to the MariaDB storage layer.
 class CollectorManager {
+  /// Instantiates a new [CollectorManager] using config specifications and database references.
+  CollectorManager({
+    required this.config,
+    required this.dbService,
+  });
+
   /// Configuration mapping details parsed from monitro.yaml.
   final YamlMap config;
 
@@ -38,12 +44,6 @@ class CollectorManager {
 
   /// Holds the latest snapshot of all metrics (for real-time API responses).
   Map<String, dynamic> latestSnapshot = {};
-
-  /// Instantiates a new [CollectorManager] using config specifications and database references.
-  CollectorManager({
-    required this.config,
-    required this.dbService,
-  });
 
   /// Starts the periodic system metrics collection loop with the specified [interval].
   void start(Duration interval) {

@@ -11,7 +11,8 @@ Future<void> main() async {
   final user = db['user'] as String;
   final password = db['password'] as String;
 
-  print('Attempting connection to 127.0.0.1 with user=[$user] password=[$password]');
+  print(
+      'Attempting connection to 127.0.0.1 with user=[$user] password=[$password]');
 
   try {
     final conn = await MySQLConnection.createConnection(
@@ -26,7 +27,7 @@ Future<void> main() async {
     print('SUCCESS!');
     await conn.close();
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('ERROR: $e');
   }
 }

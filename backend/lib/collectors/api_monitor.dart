@@ -24,7 +24,9 @@ class ApiMonitor {
   static Future<Map<String, dynamic>> _collectLinux() async {
     try {
       final result = await Process.run(
-        'ss', ['-tnp', 'state', 'established'], runInShell: true,
+        'ss',
+        ['-tnp', 'state', 'established'],
+        runInShell: true,
       );
       return _parseSsApiCalls(result.stdout.toString(), 'linux');
     } catch (error) {
@@ -37,7 +39,8 @@ class ApiMonitor {
   static Future<Map<String, dynamic>> _collectMacOS() async {
     try {
       final result = await Process.run(
-        'lsof', ['-i', 'tcp', '-n', '-P', '-s', 'TCP:ESTABLISHED'],
+        'lsof',
+        ['-i', 'tcp', '-n', '-P', '-s', 'TCP:ESTABLISHED'],
         runInShell: true,
       );
       return _parseLsofApiCalls(result.stdout.toString(), 'macos');
@@ -50,7 +53,9 @@ class ApiMonitor {
   static Future<Map<String, dynamic>> _collectWindows() async {
     try {
       final result = await Process.run(
-        'netstat', ['-anob'], runInShell: true,
+        'netstat',
+        ['-anob'],
+        runInShell: true,
       );
       return _parseWindowsNetstatApiCalls(result.stdout.toString());
     } catch (error) {
@@ -68,7 +73,7 @@ class ApiMonitor {
     final callers = <String, int>{};
     for (final line in output.split('\n')) {
       // Filter to HTTP ports in the remote address
-      bool isHttpPort = false;
+      var isHttpPort = false;
       for (final port in _httpPorts) {
         if (line.contains(':$port ') || line.contains(':$port\t')) {
           isHttpPort = true;
@@ -89,11 +94,13 @@ class ApiMonitor {
       'api_callers': callers.entries
           .map((entry) => {'process': entry.key, 'connections': entry.value})
           .toList()
-        ..sort((a, b) => (b['connections'] as int).compareTo(a['connections'] as int)),
+        ..sort((a, b) =>
+            (b['connections']! as int).compareTo(a['connections']! as int)),
     };
   }
 
-  static Map<String, dynamic> _parseLsofApiCalls(String output, String platform) {
+  static Map<String, dynamic> _parseLsofApiCalls(
+      String output, String platform) {
     final callers = <String, int>{};
     for (final line in output.split('\n')) {
       if (line.trim().isEmpty) continue;
@@ -101,7 +108,7 @@ class ApiMonitor {
       if (parts.length < 9) continue;
       final processName = parts[0];
       final network = parts[8]; // e.g. "192.168.1.1:52345->1.2.3.4:443"
-      bool isHttpPort = false;
+      var isHttpPort = false;
       for (final port in _httpPorts) {
         if (network.endsWith(':$port') || network.contains(':$port (')) {
           isHttpPort = true;
@@ -117,7 +124,8 @@ class ApiMonitor {
       'api_callers': callers.entries
           .map((entry) => {'process': entry.key, 'connections': entry.value})
           .toList()
-        ..sort((a, b) => (b['connections'] as int).compareTo(a['connections'] as int)),
+        ..sort((a, b) =>
+            (b['connections']! as int).compareTo(a['connections']! as int)),
     };
   }
 
@@ -125,7 +133,7 @@ class ApiMonitor {
     final callers = <String, int>{};
     for (final line in output.split('\n')) {
       if (!line.trim().startsWith('TCP')) continue;
-      bool isHttpPort = false;
+      var isHttpPort = false;
       for (final port in _httpPorts) {
         if (line.contains(':$port ')) {
           isHttpPort = true;

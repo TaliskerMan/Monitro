@@ -1,6 +1,6 @@
 // Auth-decision tests for the Monitro API server.
-import 'package:test/test.dart';
 import 'package:monitro_collector/api/server.dart';
+import 'package:test/test.dart';
 
 void main() {
   const key = 'secret-key';
@@ -9,7 +9,11 @@ void main() {
     test('health is always allowed (no key needed)', () {
       expect(
         isRequestAuthorized(
-          method: 'GET', path: 'api/v1/health', authHeader: null, apiKey: key),
+          method: 'GET',
+          path: 'api/v1/health',
+          authHeader: null,
+          apiKey: key,
+        ),
         isTrue,
       );
     });
@@ -17,7 +21,11 @@ void main() {
     test('CORS preflight is allowed', () {
       expect(
         isRequestAuthorized(
-          method: 'OPTIONS', path: 'api/v1/processes', authHeader: null, apiKey: key),
+          method: 'OPTIONS',
+          path: 'api/v1/processes',
+          authHeader: null,
+          apiKey: key,
+        ),
         isTrue,
       );
     });
@@ -25,19 +33,29 @@ void main() {
     test('data endpoints require the correct bearer key', () {
       expect(
         isRequestAuthorized(
-          method: 'GET', path: 'api/v1/metrics/current', authHeader: null, apiKey: key),
+          method: 'GET',
+          path: 'api/v1/metrics/current',
+          authHeader: null,
+          apiKey: key,
+        ),
         isFalse,
       );
       expect(
         isRequestAuthorized(
-          method: 'GET', path: 'api/v1/metrics/current',
-          authHeader: 'Bearer wrong', apiKey: key),
+          method: 'GET',
+          path: 'api/v1/metrics/current',
+          authHeader: 'Bearer wrong',
+          apiKey: key,
+        ),
         isFalse,
       );
       expect(
         isRequestAuthorized(
-          method: 'GET', path: 'api/v1/metrics/current',
-          authHeader: 'Bearer $key', apiKey: key),
+          method: 'GET',
+          path: 'api/v1/metrics/current',
+          authHeader: 'Bearer $key',
+          apiKey: key,
+        ),
         isTrue,
       );
     });
@@ -45,8 +63,11 @@ void main() {
     test('the kill endpoint is not reachable without the key', () {
       expect(
         isRequestAuthorized(
-          method: 'DELETE', path: 'api/v1/processes/1234',
-          authHeader: null, apiKey: key),
+          method: 'DELETE',
+          path: 'api/v1/processes/1234',
+          authHeader: null,
+          apiKey: key,
+        ),
         isFalse,
       );
     });

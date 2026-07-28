@@ -23,19 +23,19 @@ class UserCollector {
         final parts = line.trim().split(RegExp(r'\s+'));
         if (parts.length < 5) continue;
         sessions.add({
-          'username':    parts[0],
-          'tty':         parts[1],
-          'from_host':   parts[2],
-          'login_time':  parts[3],
-          'idle':        parts[4],
-          'cpu_time':    parts.length > 5 ? parts[5] : '',
+          'username': parts[0],
+          'tty': parts[1],
+          'from_host': parts[2],
+          'login_time': parts[3],
+          'idle': parts[4],
+          'cpu_time': parts.length > 5 ? parts[5] : '',
           'current_cmd': parts.length > 6 ? parts.sublist(6).join(' ') : '',
         });
       }
       return {
         'platform': Platform.operatingSystem,
         'sessions': sessions,
-        'count':    sessions.length,
+        'count': sessions.length,
       };
     } catch (error) {
       log('Exception caught', error: error);
@@ -46,7 +46,9 @@ class UserCollector {
   static Future<Map<String, dynamic>> _collectWindows() async {
     try {
       final result = await Process.run(
-        'query', ['user'], runInShell: true,
+        'query',
+        ['user'],
+        runInShell: true,
       );
       // quser output is space-delimited, skip header
       final lines = result.stdout.toString().split('\n').skip(1);
@@ -57,7 +59,11 @@ class UserCollector {
         if (parts.isEmpty) continue;
         sessions.add({'raw': line.trim()});
       }
-      return {'platform': 'windows', 'sessions': sessions, 'count': sessions.length};
+      return {
+        'platform': 'windows',
+        'sessions': sessions,
+        'count': sessions.length
+      };
     } catch (error) {
       log('Exception caught', error: error);
       return {'error': error.toString()};

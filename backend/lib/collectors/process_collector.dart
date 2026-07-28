@@ -21,8 +21,13 @@ class ProcessCollector {
   /// Linux: parse /proc/[pid]/stat and /proc/[pid]/status for each process
   static Future<Map<String, dynamic>> _collectLinux() async {
     final result = await Process.run(
-      'ps', ['-eo', 'pid,ppid,user,pcpu,pmem,rss,nlwp,stat,args', '--no-headers',
-             '--sort=-pcpu'],
+      'ps',
+      [
+        '-eo',
+        'pid,ppid,user,pcpu,pmem,rss,nlwp,stat,args',
+        '--no-headers',
+        '--sort=-pcpu',
+      ],
       runInShell: true,
     );
     return _parsePsOutput(result.stdout.toString(), 'linux');
@@ -31,8 +36,12 @@ class ProcessCollector {
   /// macOS: ps with similar options
   static Future<Map<String, dynamic>> _collectMacOS() async {
     final result = await Process.run(
-      'ps', ['-eo', 'pid,ppid,user,pcpu,pmem,rss,nlwp,stat,args',
-             '-r'], // -r: sort by CPU
+      'ps',
+      [
+        '-eo',
+        'pid,ppid,user,pcpu,pmem,rss,nlwp,stat,args',
+        '-r',
+      ], // -r: sort by CPU
       runInShell: true,
     );
     return _parsePsOutput(result.stdout.toString(), 'macos');
@@ -40,10 +49,12 @@ class ProcessCollector {
 
   static Future<Map<String, dynamic>> _collectWindows() async {
     final result = await Process.run(
-      'powershell', [
-        '-NonInteractive', '-Command',
+      'powershell',
+      [
+        '-NonInteractive',
+        '-Command',
         'Get-Process | Sort-Object CPU -Descending | '
-        'Select-Object -First $_topN Id,Name,CPU,WorkingSet,Threads | ConvertTo-Json',
+            'Select-Object -First $_topN Id,Name,CPU,WorkingSet,Threads | ConvertTo-Json',
       ],
     );
     return {'platform': 'windows', 'raw': result.stdout.toString()};
@@ -51,7 +62,7 @@ class ProcessCollector {
 
   static Map<String, dynamic> _parsePsOutput(String output, String platform) {
     final processes = <Map<String, dynamic>>[];
-    int count = 0;
+    var count = 0;
     for (final line in output.split('\n')) {
       if (line.trim().isEmpty) continue;
 
@@ -65,15 +76,15 @@ class ProcessCollector {
       if (count++ >= _topN) break;
 
       processes.add({
-        'pid':      pid,
-        'ppid':     int.tryParse(parts[1]),
-        'user':     parts[2],
-        'cpu_pct':  double.tryParse(parts[3]) ?? 0.0,
-        'mem_pct':  double.tryParse(parts[4]) ?? 0.0,
-        'rss_kb':   int.tryParse(parts[5]) ?? 0,
-        'threads':  int.tryParse(parts[6]) ?? 1,
-        'state':    parts[7],
-        'cmdline':  parts.sublist(8).join(' '),
+        'pid': pid,
+        'ppid': int.tryParse(parts[1]),
+        'user': parts[2],
+        'cpu_pct': double.tryParse(parts[3]) ?? 0.0,
+        'mem_pct': double.tryParse(parts[4]) ?? 0.0,
+        'rss_kb': int.tryParse(parts[5]) ?? 0,
+        'threads': int.tryParse(parts[6]) ?? 1,
+        'state': parts[7],
+        'cmdline': parts.sublist(8).join(' '),
       });
     }
     return {'platform': platform, 'processes': processes};

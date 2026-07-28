@@ -10,13 +10,13 @@
 
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
-import 'package:yaml/yaml.dart';
-
 import 'package:monitro_collector/api/server.dart';
 import 'package:monitro_collector/collectors/collector_manager.dart';
 import 'package:monitro_collector/storage/mariadb_service.dart';
+import 'package:yaml/yaml.dart';
 
 final _log = Logger('monitro_collector');
 
@@ -39,13 +39,11 @@ Future<void> main(List<String> args) async {
     ..addFlag(
       'verbose',
       abbr: 'v',
-      defaultsTo: false,
       help: 'Enable verbose debug logging',
     )
     ..addFlag(
       'help',
       abbr: 'h',
-      defaultsTo: false,
       negatable: false,
       help: 'Show this help message',
     );
@@ -68,9 +66,10 @@ Future<void> main(List<String> args) async {
   try {
     logSink = logFile.openWrite(mode: FileMode.append);
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print(
-        'Warning: Cannot open /var/log/monitro-collector.log for writing. Falling back to stdout string.');
+      'Warning: Cannot open /var/log/monitro-collector.log for writing. Falling back to stdout string.',
+    );
   }
 
   Logger.root.onRecord.listen((record) {
@@ -101,7 +100,8 @@ Future<void> main(List<String> args) async {
   if (!configFile.existsSync()) {
     _log.severe('Configuration file not found: $configPath');
     _log.info(
-        'Copy config/monitro.example.yaml to config/monitro.yaml and edit it.');
+      'Copy config/monitro.example.yaml to config/monitro.yaml and edit it.',
+    );
     exit(1);
   }
 
@@ -170,4 +170,3 @@ Future<void> main(List<String> args) async {
     });
   }
 }
-

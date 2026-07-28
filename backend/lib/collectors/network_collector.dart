@@ -25,18 +25,23 @@ class NetworkCollector {
         final colon = line.indexOf(':');
         if (colon < 0) continue;
         final iface = line.substring(0, colon).trim();
-        final parts = line.substring(colon + 1).trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+        final parts = line
+            .substring(colon + 1)
+            .trim()
+            .split(RegExp(r'\s+'))
+            .where((p) => p.isNotEmpty)
+            .toList();
         if (parts.length < 16) continue;
         interfaces.add({
-          'interface':   iface,
-          'rx_bytes':    int.tryParse(parts[0]) ?? 0,
-          'rx_packets':  int.tryParse(parts[1]) ?? 0,
-          'rx_errors':   int.tryParse(parts[2]) ?? 0,
-          'rx_dropped':  int.tryParse(parts[3]) ?? 0,
-          'tx_bytes':    int.tryParse(parts[8]) ?? 0,
-          'tx_packets':  int.tryParse(parts[9]) ?? 0,
-          'tx_errors':   int.tryParse(parts[10]) ?? 0,
-          'tx_dropped':  int.tryParse(parts[11]) ?? 0,
+          'interface': iface,
+          'rx_bytes': int.tryParse(parts[0]) ?? 0,
+          'rx_packets': int.tryParse(parts[1]) ?? 0,
+          'rx_errors': int.tryParse(parts[2]) ?? 0,
+          'rx_dropped': int.tryParse(parts[3]) ?? 0,
+          'tx_bytes': int.tryParse(parts[8]) ?? 0,
+          'tx_packets': int.tryParse(parts[9]) ?? 0,
+          'tx_errors': int.tryParse(parts[10]) ?? 0,
+          'tx_dropped': int.tryParse(parts[11]) ?? 0,
         });
       }
       return {'platform': 'linux', 'interfaces': interfaces};
@@ -52,17 +57,17 @@ class NetworkCollector {
       final allResult = await Process.run('netstat', ['-ib'], runInShell: true);
       final lines = allResult.stdout.toString().split('\n');
       final interfaces = <Map<String, dynamic>>[];
-      for (int index = 1; index < lines.length; index++) {
+      for (var index = 1; index < lines.length; index++) {
         final parts = lines[index].trim().split(RegExp(r'\s+'));
         if (parts.length < 10) continue;
         interfaces.add({
-          'interface':  parts[0],
+          'interface': parts[0],
           'rx_packets': int.tryParse(parts[4]) ?? 0,
-          'rx_errors':  int.tryParse(parts[5]) ?? 0,
-          'rx_bytes':   int.tryParse(parts[6]) ?? 0,
+          'rx_errors': int.tryParse(parts[5]) ?? 0,
+          'rx_bytes': int.tryParse(parts[6]) ?? 0,
           'tx_packets': int.tryParse(parts[7]) ?? 0,
-          'tx_errors':  int.tryParse(parts[8]) ?? 0,
-          'tx_bytes':   int.tryParse(parts[9]) ?? 0,
+          'tx_errors': int.tryParse(parts[8]) ?? 0,
+          'tx_bytes': int.tryParse(parts[9]) ?? 0,
         });
       }
       return {'platform': 'macos', 'interfaces': interfaces};
@@ -75,8 +80,10 @@ class NetworkCollector {
   static Future<Map<String, dynamic>> _collectWindows() async {
     try {
       final result = await Process.run(
-        'powershell', [
-          '-NonInteractive', '-Command',
+        'powershell',
+        [
+          '-NonInteractive',
+          '-Command',
           'Get-NetAdapterStatistics | Select-Object Name, ReceivedBytes, SentBytes | ConvertTo-Json',
         ],
       );

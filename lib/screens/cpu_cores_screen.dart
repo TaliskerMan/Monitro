@@ -1,6 +1,7 @@
 import 'dart:developer';
-import 'package:flutter/material.dart';
+
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:monitro/services/api_service.dart';
 import 'package:monitro/theme/app_theme.dart';
 
@@ -37,9 +38,15 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
   Future<void> _load() async {
     try {
       final data = await ApiService.getCurrentMetrics();
-      if (mounted) setState(() { _data = data; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _data = data;
+          _loading = false;
+        });
+      }
     } catch (error) {
-      log('Exception caught', error: error);}
+      log('Exception caught', error: error);
+    }
   }
 
   @override
@@ -58,18 +65,26 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
       backgroundColor: AppTheme.surface,
       appBar: AppBar(title: const Text('CPU Logical Cores')),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Real-time Core Utilization', 
-              style: TextStyle(color: AppTheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Real-time Core Utilization',
+              style: TextStyle(
+                  color: AppTheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            Text('${cores.length} Available Logical Processors', style: const TextStyle(color: AppTheme.muted)),
+            Text('${cores.length} Available Logical Processors',
+                style: const TextStyle(color: AppTheme.muted)),
             const SizedBox(height: 32),
             Expanded(
-              child: cores.isEmpty 
-                  ? const Center(child: Text('No CPU data available', style: TextStyle(color: AppTheme.muted)))
+              child: cores.isEmpty
+                  ? const Center(
+                      child: Text('No CPU data available',
+                          style: TextStyle(color: AppTheme.muted)))
                   : _buildBarChart(cores),
             ),
           ],
@@ -81,13 +96,13 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
   /// Build the BarChart representation of core percentages.
   Widget _buildBarChart(List cores) {
     final barGroups = <BarChartGroupData>[];
-    
-    for (int index = 0; index < cores.length; index++) {
+
+    for (var index = 0; index < cores.length; index++) {
       final core = cores[index] as Map? ?? {};
       final rawPct = core['busy_pct'];
       final pct = (rawPct is num) ? rawPct.toDouble() : 0.0;
-      
-      Color color = AppTheme.success;
+
+      var color = AppTheme.success;
       if (pct > 50) color = AppTheme.warning;
       if (pct > 80) color = AppTheme.danger;
 
@@ -121,20 +136,20 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
-                'Core ${group.x.toInt()}\n${rod.toY.toStringAsFixed(1)}%',
-                const TextStyle(color: AppTheme.onSurface, fontWeight: FontWeight.bold),
+                'Core ${group.x}\n${rod.toY.toStringAsFixed(1)}%',
+                const TextStyle(
+                    color: AppTheme.onSurface, fontWeight: FontWeight.bold),
               );
             },
           ),
         ),
         titlesData: FlTitlesData(
-          show: true,
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
+                  padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     value.toInt().toString(),
                     style: const TextStyle(color: AppTheme.muted, fontSize: 10),
@@ -156,11 +171,10 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
               reservedSize: 40,
             ),
           ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(),
+          rightTitles: const AxisTitles(),
         ),
         gridData: FlGridData(
-          show: true,
           drawVerticalLine: false,
           horizontalInterval: 25,
           getDrawingHorizontalLine: (value) {
@@ -176,4 +190,3 @@ class _CpuCoresScreenState extends State<CpuCoresScreen> {
     );
   }
 }
-

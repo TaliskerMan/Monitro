@@ -1,12 +1,12 @@
-import 'dart:developer';
 import 'dart:async';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../theme/app_theme.dart';
-import '../services/api_service.dart';
-import '../services/error_messages.dart';
-import '../services/preferences_service.dart';
+import 'package:monitro/services/api_service.dart';
+import 'package:monitro/services/error_messages.dart';
+import 'package:monitro/services/preferences_service.dart';
+import 'package:monitro/theme/app_theme.dart';
 
 /// State-aware widget presenting system metrics overview.
 ///
@@ -129,9 +129,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           const Text(
             'Cannot connect to Monitro backend',
             style: TextStyle(
-                color: AppTheme.onSurface,
-                fontSize: 18,
-                fontWeight: FontWeight.bold),
+              color: AppTheme.onSurface,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -140,8 +141,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          Text(_error ?? '',
-              style: const TextStyle(color: AppTheme.muted, fontSize: 11)),
+          Text(
+            _error ?? '',
+            style: const TextStyle(color: AppTheme.muted, fontSize: 11),
+          ),
         ],
       ),
     );
@@ -201,7 +204,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: Text(
               _error!,
               style: const TextStyle(
-                  color: AppTheme.danger, fontWeight: FontWeight.bold),
+                color: AppTheme.danger,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -219,80 +224,94 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final settings = ref.watch(settingsProvider);
 
     // Build the grid items dynamically based on settings
-    final List<Widget> cards = [];
+    final cards = <Widget>[];
 
     // CPU Cards
     if (settings.showPerCoreCpu && cpu?['cores'] != null) {
       final cores = cpu!['cores'] as List;
       // On macOS, per-core data is the aggregate repeated; label it honestly.
       final perCoreReal = cpu['per_core_real'] != false;
-      for (int index = 0; index < cores.length; index++) {
+      for (var index = 0; index < cores.length; index++) {
         final corePct = cores[index]['busy_pct'];
-        cards.add(_MetricCard(
-          title: 'CPU Core $index',
-          icon: Icons.memory,
-          value: '${((corePct ?? 0.0) as num).toStringAsFixed(1)}%',
-          subtitle: perCoreReal ? 'utilization' : 'aggregate (not per-core)',
-          color: _pctColor(corePct),
-        ));
+        cards.add(
+          _MetricCard(
+            title: 'CPU Core $index',
+            icon: Icons.memory,
+            value: '${((corePct ?? 0.0) as num).toStringAsFixed(1)}%',
+            subtitle: perCoreReal ? 'utilization' : 'aggregate (not per-core)',
+            color: _pctColor(corePct),
+          ),
+        );
       }
     } else {
-      cards.add(_MetricCard(
-        title: 'CPU',
-        icon: Icons.memory,
-        value: '${((cpu?['busy_pct'] ?? 0.0) as num).toStringAsFixed(1)}%',
-        subtitle: 'utilization',
-        color: _pctColor(cpu?['busy_pct']),
-      ));
+      cards.add(
+        _MetricCard(
+          title: 'CPU',
+          icon: Icons.memory,
+          value: '${((cpu?['busy_pct'] ?? 0.0) as num).toStringAsFixed(1)}%',
+          subtitle: 'utilization',
+          color: _pctColor(cpu?['busy_pct']),
+        ),
+      );
     }
 
     // Memory
-    cards.add(_MetricCard(
-      title: 'Memory',
-      value: '${((memory?['used_pct'] ?? 0.0) as num).toStringAsFixed(1)}%',
-      icon: Icons.storage,
-      subtitle: 'used',
-      color: _pctColor(memory?['used_pct']),
-    ));
+    cards.add(
+      _MetricCard(
+        title: 'Memory',
+        value: '${((memory?['used_pct'] ?? 0.0) as num).toStringAsFixed(1)}%',
+        icon: Icons.storage,
+        subtitle: 'used',
+        color: _pctColor(memory?['used_pct']),
+      ),
+    );
 
     // Load
-    cards.add(_MetricCard(
-      title: 'Load 1m',
-      value: '${system?['load_1'] ?? '?'}',
-      icon: Icons.show_chart,
-      subtitle:
-          '5m: ${system?['load_5'] ?? '?'}  15m: ${system?['load_15'] ?? '?'}',
-      color: AppTheme.accent,
-    ));
+    cards.add(
+      _MetricCard(
+        title: 'Load 1m',
+        value: '${system?['load_1'] ?? '?'}',
+        icon: Icons.show_chart,
+        subtitle:
+            '5m: ${system?['load_5'] ?? '?'}  15m: ${system?['load_15'] ?? '?'}',
+        color: AppTheme.accent,
+      ),
+    );
 
     // Network Interface filtering
     final interfaces = netstat?['interfaces'] as Map? ?? {};
     if (settings.selectedNetworkInterface == 'All') {
-      cards.add(_MetricCard(
-        title: 'Connections',
-        value: '${netstat?['summary']?['ESTABLISHED'] ?? 0}',
-        icon: Icons.cable,
-        subtitle: 'established (All)',
-        color: AppTheme.success,
-      ));
+      cards.add(
+        _MetricCard(
+          title: 'Connections',
+          value: '${netstat?['summary']?['ESTABLISHED'] ?? 0}',
+          icon: Icons.cable,
+          subtitle: 'established (All)',
+          color: AppTheme.success,
+        ),
+      );
     } else {
       final ifaceData = interfaces[settings.selectedNetworkInterface] as Map?;
       final bytesIn = ifaceData?['bytes_recv'] ?? 0;
       final bytesOut = ifaceData?['bytes_sent'] ?? 0;
-      cards.add(_MetricCard(
-        title: 'Network (${settings.selectedNetworkInterface})',
-        value: '${(bytesIn / 1024 / 1024).toStringAsFixed(1)} MB',
-        icon: Icons.wifi,
-        subtitle: 'recv (total)',
-        color: AppTheme.accent,
-      ));
-      cards.add(_MetricCard(
-        title: 'Network (${settings.selectedNetworkInterface})',
-        value: '${(bytesOut / 1024 / 1024).toStringAsFixed(1)} MB',
-        icon: Icons.wifi,
-        subtitle: 'sent (total)',
-        color: AppTheme.accent,
-      ));
+      cards.add(
+        _MetricCard(
+          title: 'Network (${settings.selectedNetworkInterface})',
+          value: '${(bytesIn / 1024 / 1024).toStringAsFixed(1)} MB',
+          icon: Icons.wifi,
+          subtitle: 'recv (total)',
+          color: AppTheme.accent,
+        ),
+      );
+      cards.add(
+        _MetricCard(
+          title: 'Network (${settings.selectedNetworkInterface})',
+          value: '${(bytesOut / 1024 / 1024).toStringAsFixed(1)} MB',
+          icon: Icons.wifi,
+          subtitle: 'sent (total)',
+          color: AppTheme.accent,
+        ),
+      );
     }
 
     return SingleChildScrollView(
@@ -303,24 +322,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           if (_error != null) _buildErrorBanner(),
           if (system != null) _buildSystemHeader(system),
           const SizedBox(height: 20),
-          LayoutBuilder(builder: (context, constraints) {
-            final cols = constraints.maxWidth > 1200
-                ? 5
-                : constraints.maxWidth > 800
-                    ? 4
-                    : constraints.maxWidth > 500
-                        ? 2
-                        : 1;
-            return GridView.count(
-              crossAxisCount: cols,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.4,
-              children: cards,
-            );
-          }),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cols = constraints.maxWidth > 1200
+                  ? 5
+                  : constraints.maxWidth > 800
+                      ? 4
+                      : constraints.maxWidth > 500
+                          ? 2
+                          : 1;
+              return GridView.count(
+                crossAxisCount: cols,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.4,
+                children: cards,
+              );
+            },
+          ),
         ],
       ),
     );
@@ -328,37 +349,40 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   /// Render the system hostname, OS specifications, and uptime headers.
   Widget _buildSystemHeader(Map system) {
-    return Row(children: [
-      const Icon(Icons.computer, color: AppTheme.accent, size: 20),
-      const SizedBox(width: 8),
-      Flexible(
-        child: Text(
-          system['hostname'] ?? 'Unknown',
-          style: const TextStyle(
+    return Row(
+      children: [
+        const Icon(Icons.computer, color: AppTheme.accent, size: 20),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            system['hostname'] ?? 'Unknown',
+            style: const TextStyle(
               color: AppTheme.onSurface,
               fontWeight: FontWeight.bold,
-              fontSize: 16),
-          overflow: TextOverflow.ellipsis,
+              fontSize: 16,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-      ),
-      const SizedBox(width: 16),
-      Flexible(
-        child: Text(
-          system['os_version'] ?? '',
-          style: const TextStyle(color: AppTheme.muted, fontSize: 13),
-          overflow: TextOverflow.ellipsis,
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            system['os_version'] ?? '',
+            style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-      ),
-      const SizedBox(width: 16),
-      Flexible(
-        child: Text(
-          'Up ${system['uptime_days']}d  |  ${system['load_1']}',
-          style: const TextStyle(color: AppTheme.muted, fontSize: 12),
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.right,
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            'Up ${system['uptime_days']}d  |  ${system['load_1']}',
+            style: const TextStyle(color: AppTheme.muted, fontSize: 12),
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 
   /// Resolve color codes matching load percentages.
@@ -372,12 +396,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
 /// A card representation containing a title, value, and icon with metric status colors.
 class _MetricCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-
   const _MetricCard({
     required this.title,
     required this.value,
@@ -385,6 +403,11 @@ class _MetricCard extends StatelessWidget {
     required this.icon,
     required this.color,
   });
+  final String title;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -395,26 +418,36 @@ class _MetricCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(children: [
-              Icon(icon, color: color, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: Text(title,
-                      style:
-                          const TextStyle(fontSize: 13, color: AppTheme.muted),
-                      overflow: TextOverflow.ellipsis)),
-            ]),
-            Text(value,
-                style: TextStyle(
-                    fontSize: 28, fontWeight: FontWeight.bold, color: color),
-                overflow: TextOverflow.ellipsis),
-            Text(subtitle,
-                style: const TextStyle(fontSize: 11, color: AppTheme.muted),
-                overflow: TextOverflow.ellipsis),
+            Row(
+              children: [
+                Icon(icon, color: color, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontSize: 13, color: AppTheme.muted),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              subtitle,
+              style: const TextStyle(fontSize: 11, color: AppTheme.muted),
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
     );
   }
 }
-

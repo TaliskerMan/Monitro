@@ -1,15 +1,30 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:math';
-import 'dart:convert';
 
 /// Provider exposing the initialized SharedPreferences database instance.
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('sharedPreferencesProvider must be overridden in main.dart');
+  throw UnimplementedError(
+      'sharedPreferencesProvider must be overridden in main.dart');
 });
 
 /// Immutable configuration data model storing application preferences and database configs.
 class AppSettings {
+  /// Creates an [AppSettings] instance.
+  const AppSettings({
+    this.selectedNetworkInterface = 'All',
+    this.showPerCoreCpu = false,
+    this.refreshIntervalSeconds = 5,
+    this.mariadbHost,
+    this.mariadbPort,
+    this.mariadbUser,
+    this.mariadbPass,
+    this.mariadbDb,
+    this.apiKey,
+  });
+
   /// Selected physical or virtual network interface name (e.g. eth0, wlan0).
   final String selectedNetworkInterface;
 
@@ -18,7 +33,7 @@ class AppSettings {
 
   /// Time interval in seconds between metric polls.
   final int refreshIntervalSeconds;
-  
+
   /// Target host address of the MariaDB relational metrics store.
   final String? mariadbHost;
 
@@ -37,21 +52,9 @@ class AppSettings {
   /// Secure API authorization bearer key.
   final String? apiKey;
 
-  /// Creates an [AppSettings] instance.
-  const AppSettings({
-    this.selectedNetworkInterface = 'All',
-    this.showPerCoreCpu = false,
-    this.refreshIntervalSeconds = 5,
-    this.mariadbHost,
-    this.mariadbPort,
-    this.mariadbUser,
-    this.mariadbPass,
-    this.mariadbDb,
-    this.apiKey,
-  });
-
   /// Check whether the database configs are fully populated.
-  bool get hasDatabaseConfig => mariadbHost != null && mariadbUser != null && mariadbPass != null;
+  bool get hasDatabaseConfig =>
+      mariadbHost != null && mariadbUser != null && mariadbPass != null;
 
   /// Create a cloned instance with modified properties.
   AppSettings copyWith({
@@ -66,9 +69,11 @@ class AppSettings {
     String? apiKey,
   }) {
     return AppSettings(
-      selectedNetworkInterface: selectedNetworkInterface ?? this.selectedNetworkInterface,
+      selectedNetworkInterface:
+          selectedNetworkInterface ?? this.selectedNetworkInterface,
       showPerCoreCpu: showPerCoreCpu ?? this.showPerCoreCpu,
-      refreshIntervalSeconds: refreshIntervalSeconds ?? this.refreshIntervalSeconds,
+      refreshIntervalSeconds:
+          refreshIntervalSeconds ?? this.refreshIntervalSeconds,
       mariadbHost: mariadbHost ?? this.mariadbHost,
       mariadbPort: mariadbPort ?? this.mariadbPort,
       mariadbUser: mariadbUser ?? this.mariadbUser,
@@ -96,7 +101,7 @@ class SettingsController extends Notifier<AppSettings> {
 
   /// Load settings from SharedPreferences storage, generating a random API key if not yet set.
   static AppSettings loadSettings(SharedPreferences prefs) {
-    String? apiKey = prefs.getString('apiKey');
+    var apiKey = prefs.getString('apiKey');
     if (apiKey == null) {
       final random = Random.secure();
       final values = List<int>.generate(32, (i) => random.nextInt(256));
@@ -105,7 +110,8 @@ class SettingsController extends Notifier<AppSettings> {
     }
 
     return AppSettings(
-      selectedNetworkInterface: prefs.getString('selectedNetworkInterface') ?? 'All',
+      selectedNetworkInterface:
+          prefs.getString('selectedNetworkInterface') ?? 'All',
       showPerCoreCpu: prefs.getBool('showPerCoreCpu') ?? false,
       refreshIntervalSeconds: prefs.getInt('refreshIntervalSeconds') ?? 5,
       mariadbHost: prefs.getString('mariadbHost'),
@@ -148,7 +154,7 @@ class SettingsController extends Notifier<AppSettings> {
     _prefs.setString('mariadbUser', user);
     _prefs.setString('mariadbPass', pass);
     _prefs.setString('mariadbDb', db);
-    
+
     state = state.copyWith(
       mariadbHost: host,
       mariadbPort: port,
@@ -166,5 +172,5 @@ class SettingsController extends Notifier<AppSettings> {
 }
 
 /// Provider exposing the global [SettingsController] notifier.
-final settingsProvider = NotifierProvider<SettingsController, AppSettings>(SettingsController.new);
-
+final settingsProvider =
+    NotifierProvider<SettingsController, AppSettings>(SettingsController.new);

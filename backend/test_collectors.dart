@@ -1,21 +1,22 @@
 import 'dart:developer';
-import 'lib/collectors/system_collector.dart';
+
+import 'lib/collectors/api_monitor.dart';
 import 'lib/collectors/cpu_collector.dart';
-import 'lib/collectors/memory_collector.dart';
 import 'lib/collectors/disk_collector.dart';
 import 'lib/collectors/fs_collector.dart';
-import 'lib/collectors/network_collector.dart';
+import 'lib/collectors/memory_collector.dart';
 import 'lib/collectors/netstat_collector.dart';
+import 'lib/collectors/network_collector.dart';
 import 'lib/collectors/process_collector.dart';
+import 'lib/collectors/system_collector.dart';
 import 'lib/collectors/user_collector.dart';
-import 'lib/collectors/api_monitor.dart';
 
 void main() async {
   print('Testing SystemCollector...');
   try {
     print(await SystemCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL SystemCollector: $e');
   }
 
@@ -23,7 +24,7 @@ void main() async {
   try {
     print(await CpuCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL CpuCollector: $e');
   }
 
@@ -31,7 +32,7 @@ void main() async {
   try {
     print(await MemoryCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL MemoryCollector: $e');
   }
 
@@ -39,7 +40,7 @@ void main() async {
   try {
     print(await DiskCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL DiskCollector: $e');
   }
 
@@ -47,7 +48,7 @@ void main() async {
   try {
     print(await FsCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL FsCollector: $e');
   }
 
@@ -55,7 +56,7 @@ void main() async {
   try {
     print(await NetworkCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL NetworkCollector: $e');
   }
 
@@ -63,7 +64,7 @@ void main() async {
   try {
     print(await NetstatCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL NetstatCollector: $e');
   }
 
@@ -71,7 +72,7 @@ void main() async {
   try {
     print(await ProcessCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL ProcessCollector: $e');
   }
 
@@ -79,7 +80,7 @@ void main() async {
   try {
     print(await UserCollector.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL UserCollector: $e');
   }
 
@@ -87,7 +88,7 @@ void main() async {
   try {
     print(await ApiMonitor.collect());
   } catch (e) {
-      log('Exception caught', error: e);
+    log('Exception caught', error: e);
     print('FAIL ApiMonitor: $e');
   }
 }

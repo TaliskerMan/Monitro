@@ -18,19 +18,19 @@ class FsCollector {
       final result = await Process.run('df', ['-P', '-k'], runInShell: true);
       final lines = result.stdout.toString().split('\n');
       final mounts = <Map<String, dynamic>>[];
-      for (int index = 1; index < lines.length; index++) {
+      for (var index = 1; index < lines.length; index++) {
         final parts = lines[index].trim().split(RegExp(r'\s+'));
         if (parts.length < 6) continue;
         final totalKb = int.tryParse(parts[1]) ?? 0;
-        final usedKb  = int.tryParse(parts[2]) ?? 0;
+        final usedKb = int.tryParse(parts[2]) ?? 0;
         final availKb = int.tryParse(parts[3]) ?? 0;
         mounts.add({
           'filesystem': parts[0],
-          'total_kb':   totalKb,
-          'used_kb':    usedKb,
-          'avail_kb':   availKb,
-          'use_pct':    totalKb > 0 ? (usedKb / totalKb * 100) : 0.0,
-          'mount':      parts[5],
+          'total_kb': totalKb,
+          'used_kb': usedKb,
+          'avail_kb': availKb,
+          'use_pct': totalKb > 0 ? (usedKb / totalKb * 100) : 0.0,
+          'mount': parts[5],
         });
       }
       return {'platform': Platform.operatingSystem, 'mounts': mounts};
@@ -43,10 +43,12 @@ class FsCollector {
   static Future<Map<String, dynamic>> _collectWindows() async {
     try {
       final result = await Process.run(
-        'powershell', [
-          '-NonInteractive', '-Command',
+        'powershell',
+        [
+          '-NonInteractive',
+          '-Command',
           'Get-PSDrive -PSProvider FileSystem | '
-          'Select-Object Name, Used, Free | ConvertTo-Json',
+              'Select-Object Name, Used, Free | ConvertTo-Json',
         ],
       );
       return {'platform': 'windows', 'raw': result.stdout.toString()};

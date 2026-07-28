@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import 'package:monitro/theme/app_theme.dart';
 
 /// Screen widget hosting backend daemon service controls.
 ///
@@ -32,7 +32,9 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
     try {
       // Read the last 50 lines from the persistent log file
       final result = await Process.run(
-          'tail', ['-n', '50', '/var/log/monitro-collector.log']);
+        'tail',
+        ['-n', '50', '/var/log/monitro-collector.log'],
+      );
       if (mounted) {
         setState(() {
           _logContent = result.stdout.toString().trim();
@@ -51,7 +53,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
           '--no-pager',
           '-n',
           '50',
-          '--output=short'
+          '--output=short',
         ]);
         if (mounted) {
           setState(() {
@@ -76,7 +78,9 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
   Future<void> _checkServiceStatus() async {
     try {
       final result = await Process.run(
-          'systemctl', ['is-active', 'monitro-collector.service']);
+        'systemctl',
+        ['is-active', 'monitro-collector.service'],
+      );
       if (mounted) {
         setState(() {
           _isServiceOn = result.stdout.toString().trim() == 'active';
@@ -103,15 +107,18 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
   Future<void> _toggleService(bool turnOn) async {
     // Pre-check: is the service already in the desired state?
     final preCheck = await Process.run(
-        '/usr/bin/systemctl', ['is-active', 'monitro-collector.service']);
+      '/usr/bin/systemctl',
+      ['is-active', 'monitro-collector.service'],
+    );
     final alreadyActive = preCheck.stdout.toString().trim() == 'active';
 
     if (turnOn && alreadyActive) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Collector service is already running.'),
-              backgroundColor: AppTheme.success),
+            content: Text('Collector service is already running.'),
+            backgroundColor: AppTheme.success,
+          ),
         );
       }
       return;
@@ -120,8 +127,9 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Collector service is already stopped.'),
-              backgroundColor: AppTheme.muted),
+            content: Text('Collector service is already stopped.'),
+            backgroundColor: AppTheme.muted,
+          ),
         );
       }
       return;
@@ -159,7 +167,8 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  'Failed: ${stderr.isNotEmpty ? stderr : "Authentication cancelled or error occurred."}'),
+                'Failed: ${stderr.isNotEmpty ? stderr : "Authentication cancelled or error occurred."}',
+              ),
               backgroundColor: AppTheme.danger,
               duration: const Duration(seconds: 5),
             ),
@@ -171,7 +180,9 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: $error'), backgroundColor: AppTheme.danger),
+            content: Text('Error: $error'),
+            backgroundColor: AppTheme.danger,
+          ),
         );
       }
     } finally {
@@ -179,7 +190,9 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
 
       if (mounted) {
         final checkResult = await Process.run(
-            '/usr/bin/systemctl', ['is-active', 'monitro-collector.service']);
+          '/usr/bin/systemctl',
+          ['is-active', 'monitro-collector.service'],
+        );
         final isActive = checkResult.stdout.toString().trim() == 'active';
 
         setState(() {
@@ -218,7 +231,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
               children: [
                 // ── Service toggle section ──
                 Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     children: [
                       Icon(
@@ -243,11 +256,14 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('OFF',
-                              style: TextStyle(
-                                  color: AppTheme.danger,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold)),
+                          const Text(
+                            'OFF',
+                            style: TextStyle(
+                              color: AppTheme.danger,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(width: 16),
                           Transform.scale(
                             scale: 1.5,
@@ -256,15 +272,18 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
                               activeTrackColor: AppTheme.success,
                               inactiveThumbColor: AppTheme.danger,
                               inactiveTrackColor: AppTheme.surfaceAlt,
-                              onChanged: (value) => _toggleService(value),
+                              onChanged: _toggleService,
                             ),
                           ),
                           const SizedBox(width: 16),
-                          const Text('ON',
-                              style: TextStyle(
-                                  color: AppTheme.success,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold)),
+                          const Text(
+                            'ON',
+                            style: TextStyle(
+                              color: AppTheme.success,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -284,18 +303,22 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
                     children: [
                       Icon(Icons.terminal, color: AppTheme.accent, size: 18),
                       SizedBox(width: 8),
-                      Text('Service Log',
-                          style: TextStyle(
-                              color: AppTheme.accent,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14)),
+                      Text(
+                        'Service Log',
+                        style: TextStyle(
+                          color: AppTheme.accent,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
                       Spacer(),
                       Text(
                         '/var/log/monitro-collector.log',
                         style: TextStyle(
-                            color: AppTheme.muted,
-                            fontSize: 11,
-                            fontFamily: 'monospace'),
+                          color: AppTheme.muted,
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ],
                   ),
@@ -307,7 +330,7 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF0D1117),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppTheme.surfaceAlt, width: 1),
+                      border: Border.all(color: AppTheme.surfaceAlt),
                     ),
                     child: SingleChildScrollView(
                       reverse: true,
@@ -328,4 +351,3 @@ class _ServiceControlScreenState extends State<ServiceControlScreen> {
     );
   }
 }
-

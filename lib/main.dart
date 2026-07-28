@@ -2,22 +2,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import 'screens/setup_screen.dart';
-import 'screens/dashboard.dart';
-import 'screens/screens.dart'; // processes, connections, users, api_monitor, alerts, settings
-import 'screens/cpu_cores_screen.dart';
-import 'screens/service_control_screen.dart';
-import 'screens/about_screen.dart';
-import 'theme/app_theme.dart';
-import 'services/preferences_service.dart';
-import 'services/backend_service.dart';
-import 'services/config_generator.dart';
-import 'services/api_service.dart';
+import 'package:monitro/screens/about_screen.dart';
+import 'package:monitro/screens/cpu_cores_screen.dart';
+import 'package:monitro/screens/dashboard.dart';
+import 'package:monitro/screens/screens.dart'; // processes, connections, users, api_monitor, alerts, settings
+import 'package:monitro/screens/service_control_screen.dart';
+import 'package:monitro/screens/setup_screen.dart';
+import 'package:monitro/services/api_service.dart';
+import 'package:monitro/services/backend_service.dart';
+import 'package:monitro/services/config_generator.dart';
+import 'package:monitro/services/preferences_service.dart';
+import 'package:monitro/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Main execution entrypoint for the Monitro desktop frontend application.
-/// 
+///
 /// Initializes SharedPreferences storage, performs early configuration verification
 /// to boot the collector service if available, and runs the root MaterialApp.
 Future<void> main() async {
@@ -49,15 +48,14 @@ Future<void> main() async {
   );
 }
 
-
 /// The root application widget for Monitro.
 /// Handles routing and overall application state initialization.
 class MonitroApp extends StatelessWidget {
+  /// Creates a [MonitroApp] instance.
+  const MonitroApp({required this.hasConfig, super.key});
+
   /// Whether the database parameters have been successfully configured.
   final bool hasConfig;
-
-  /// Creates a [MonitroApp] instance.
-  const MonitroApp({super.key, required this.hasConfig});
 
   @override
   Widget build(BuildContext context) {
@@ -71,25 +69,38 @@ class MonitroApp extends StatelessWidget {
         ShellRoute(
           builder: (context, state, child) => AppShell(child: child),
           routes: [
-            GoRoute(path: '/', builder: (context, s) => const DashboardScreen()),
             GoRoute(
-                path: '/processes', builder: (context, s) => const ProcessesScreen()),
+                path: '/', builder: (context, s) => const DashboardScreen()),
             GoRoute(
-                path: '/cpu-cores', builder: (context, s) => const CpuCoresScreen()),
+              path: '/processes',
+              builder: (context, s) => const ProcessesScreen(),
+            ),
             GoRoute(
-                path: '/connections',
-                builder: (context, s) => const ConnectionsScreen()),
-            GoRoute(path: '/users', builder: (context, s) => const UsersScreen()),
+              path: '/cpu-cores',
+              builder: (context, s) => const CpuCoresScreen(),
+            ),
             GoRoute(
-                path: '/api-calls',
-                builder: (context, s) => const ApiMonitorScreen()),
-            GoRoute(path: '/alerts', builder: (context, s) => const AlertsScreen()),
+              path: '/connections',
+              builder: (context, s) => const ConnectionsScreen(),
+            ),
             GoRoute(
-                path: '/service-control',
-                builder: (context, s) => const ServiceControlScreen()),
+                path: '/users', builder: (context, s) => const UsersScreen()),
             GoRoute(
-                path: '/settings', builder: (context, s) => const SettingsScreen()),
-            GoRoute(path: '/about', builder: (context, s) => const AboutScreen()),
+              path: '/api-calls',
+              builder: (context, s) => const ApiMonitorScreen(),
+            ),
+            GoRoute(
+                path: '/alerts', builder: (context, s) => const AlertsScreen()),
+            GoRoute(
+              path: '/service-control',
+              builder: (context, s) => const ServiceControlScreen(),
+            ),
+            GoRoute(
+              path: '/settings',
+              builder: (context, s) => const SettingsScreen(),
+            ),
+            GoRoute(
+                path: '/about', builder: (context, s) => const AboutScreen()),
           ],
         ),
       ],
@@ -108,11 +119,11 @@ class MonitroApp extends StatelessWidget {
 
 /// Scaffold layout housing the navigation sidebar and content space.
 class AppShell extends StatelessWidget {
+  /// Creates an [AppShell] instance.
+  const AppShell({required this.child, super.key});
+
   /// Active nested subpage layout displayed inside the main content frame.
   final Widget child;
-
-  /// Creates an [AppShell] instance.
-  const AppShell({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -128,18 +139,25 @@ class AppShell extends StatelessWidget {
             onDestinationSelected: (index) => _navigate(context, index),
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Column(children: [
-                Image.asset('assets/images/monitro_icon.png',
-                    width: 48, height: 48),
-                const SizedBox(height: 8),
-                const Text('Monitro',
+              child: Column(
+                children: [
+                  Image.asset(
+                    'assets/images/monitro_icon.png',
+                    width: 48,
+                    height: 48,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Monitro',
                     style: TextStyle(
                       color: AppTheme.accent,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,
-                    )),
-              ]),
+                    ),
+                  ),
+                ],
+              ),
             ),
             destinations: const [
               NavigationRailDestination(
@@ -212,7 +230,7 @@ class AppShell extends StatelessWidget {
         '/alerts',
         '/service-control',
         '/settings',
-        '/about'
+        '/about',
       ];
 
   /// Find sidebar destination index corresponding to the current active location path.
@@ -226,4 +244,3 @@ class AppShell extends StatelessWidget {
     context.go(_navRoutes[index]);
   }
 }
-

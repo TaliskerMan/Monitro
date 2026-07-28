@@ -1,18 +1,18 @@
 // Monitro HTTPS API Server
 // Serves the collector's live data to the Flutter UI over localhost HTTPS.
 
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'dart:convert';
+
+import 'package:logging/logging.dart';
+import 'package:monitro_collector/collectors/collector_manager.dart';
+import 'package:monitro_collector/storage/mariadb_service.dart';
+import 'package:monitro_collector/version.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
-import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
-
-import '../collectors/collector_manager.dart';
-import '../storage/mariadb_service.dart';
-import '../version.dart';
 
 final _log = Logger('MonitroApiServer');
 
@@ -20,7 +20,7 @@ final _log = Logger('MonitroApiServer');
 ///
 /// Returns true if the request should be allowed. `/health` and CORS preflight
 /// are always allowed; every other endpoint requires `Authorization: Bearer
-/// <apiKey>`.
+/// `apiKey`.
 bool isRequestAuthorized({
   required String method,
   required String path,
@@ -39,6 +39,14 @@ bool isRequestAuthorized({
 /// Binds routing pathways to fetch real-time memory metrics, database historical logs,
 /// and execute administrative signals (e.g. process termination). Binds CORS and Auth middleware.
 class MonitroApiServer {
+  /// Creates a [MonitroApiServer] instance.
+  MonitroApiServer({
+    required this.config,
+    required this.configDir,
+    required this.dbService,
+    required this.collectorManager,
+  });
+
   /// Raw configuration Map containing host and port specifications.
   final YamlMap config;
 
@@ -53,24 +61,18 @@ class MonitroApiServer {
 
   HttpServer? _server;
 
-  /// Creates a [MonitroApiServer] instance.
-  MonitroApiServer({
-    required this.config,
-    required this.configDir,
-    required this.dbService,
-    required this.collectorManager,
-  });
-
   /// Configure shelf pipelines, bind SSL contexts, and spin up the server.
   Future<void> start() async {
     final host = config['host'] as String? ?? '127.0.0.1';
     final port = config['port'] as int? ?? 8443;
     final certRelPath = config['cert'] as String? ?? 'certs/server.crt';
-    final keyRelPath  = config['key']  as String? ?? 'certs/server.key';
+    final keyRelPath = config['key'] as String? ?? 'certs/server.key';
     // Resolve relative to config file's directory, so running from backend/ works correctly
-    final certPath = certRelPath.startsWith('/') ? certRelPath : '$configDir/$certRelPath';
-    final keyPath  = keyRelPath.startsWith('/')  ? keyRelPath  : '$configDir/$keyRelPath';
-    final apiKey   = config['api_key'] as String?;
+    final certPath =
+        certRelPath.startsWith('/') ? certRelPath : '$configDir/$certRelPath';
+    final keyPath =
+        keyRelPath.startsWith('/') ? keyRelPath : '$configDir/$keyRelPath';
+    final apiKey = config['api_key'] as String?;
 
     // Security: the api_key is the only thing standing between a local web
     // origin and the process-kill endpoint. Refuse to start without one rather
@@ -85,15 +87,15 @@ class MonitroApiServer {
     }
 
     final router = Router()
-      ..get('/api/v1/health',              _handleHealth)
-      ..get('/api/v1/metrics/current',     _handleCurrentMetrics)
-      ..get('/api/v1/metrics/history',     _handleMetricHistory)
-      ..get('/api/v1/processes',           _handleProcesses)
-      ..delete('/api/v1/processes/<pid>',  _handleKillProcess)
-      ..get('/api/v1/connections',         _handleConnections)
-      ..get('/api/v1/users',               _handleUsers)
-      ..get('/api/v1/api-calls',           _handleApiCalls)
-      ..get('/api/v1/alerts',              _handleAlerts);
+      ..get('/api/v1/health', _handleHealth)
+      ..get('/api/v1/metrics/current', _handleCurrentMetrics)
+      ..get('/api/v1/metrics/history', _handleMetricHistory)
+      ..get('/api/v1/processes', _handleProcesses)
+      ..delete('/api/v1/processes/<pid>', _handleKillProcess)
+      ..get('/api/v1/connections', _handleConnections)
+      ..get('/api/v1/users', _handleUsers)
+      ..get('/api/v1/api-calls', _handleApiCalls)
+      ..get('/api/v1/alerts', _handleAlerts);
 
     final handler = const Pipeline()
         .addMiddleware(_corsMiddleware())
@@ -104,7 +106,7 @@ class MonitroApiServer {
     // Load SSL context
     SecurityContext? context;
     final certFile = File(certPath);
-    final keyFile  = File(keyPath);
+    final keyFile = File(keyPath);
 
     if (certFile.existsSync() && keyFile.existsSync()) {
       context = SecurityContext()
@@ -112,7 +114,8 @@ class MonitroApiServer {
         ..usePrivateKey(keyPath);
       _log.info('SSL certificates loaded: $certPath');
     } else {
-      _log.warning('SSL certs not found — starting HTTP (run certs/gen_certs.sh first)');
+      _log.warning(
+          'SSL certs not found — starting HTTP (run certs/gen_certs.sh first)');
     }
 
     _server = await shelf_io.serve(
@@ -149,8 +152,8 @@ class MonitroApiServer {
   /// Query historical records logged in MariaDB tables.
   Future<Response> _handleMetricHistory(Request request) async {
     final params = request.url.queryParameters;
-    final metric  = params['metric'] ?? 'cpu.busy_pct';
-    final label   = params['label'];
+    final metric = params['metric'] ?? 'cpu.busy_pct';
+    final label = params['label'];
     final minutes = int.tryParse(params['minutes'] ?? '60') ?? 60;
 
     final data = await dbService.queryMetricHistory(
@@ -164,13 +167,15 @@ class MonitroApiServer {
   /// Query top processes list. Bypasses database queries if live cached stats exist.
   Future<Response> _handleProcesses(Request request) async {
     final limit = int.tryParse(
-      request.url.queryParameters['limit'] ?? '20',
-    ) ?? 20;
+          request.url.queryParameters['limit'] ?? '20',
+        ) ??
+        20;
     // Return live snapshot for lowest latency, fall back to DB
     final snapshot = collectorManager.latestSnapshot;
     final procData = snapshot['processes'];
     if (procData != null && procData['error'] == null) {
-      final processes = (procData['processes'] as List? ?? []).take(limit).toList();
+      final processes =
+          (procData['processes'] as List? ?? []).take(limit).toList();
       return _json({'processes': processes, 'source': 'live'});
     }
     final dbData = await dbService.queryTopProcesses(limit: limit);
@@ -210,7 +215,8 @@ class MonitroApiServer {
     } catch (e) {
       log('Exception caught', error: e);
       _log.severe('Failed to kill process $pid', e);
-      return Response.internalServerError(body: jsonEncode({'error': e.toString()}));
+      return Response.internalServerError(
+          body: jsonEncode({'error': e.toString()}));
     }
   }
 
@@ -245,8 +251,9 @@ class MonitroApiServer {
   /// Query recent warning alerts recorded in MariaDB.
   Future<Response> _handleAlerts(Request request) async {
     final limit = int.tryParse(
-      request.url.queryParameters['limit'] ?? '50',
-    ) ?? 50;
+          request.url.queryParameters['limit'] ?? '50',
+        ) ??
+        50;
     final alerts = await dbService.queryRecentAlerts(limit: limit);
     return _json({'alerts': alerts});
   }
@@ -296,11 +303,11 @@ class MonitroApiServer {
         );
         if (!ok) {
           return Response.forbidden(
-              jsonEncode({'error': 'Unauthorized: Invalid API Key'}));
+            jsonEncode({'error': 'Unauthorized: Invalid API Key'}),
+          );
         }
         return await innerHandler(request);
       };
     };
   }
 }
-

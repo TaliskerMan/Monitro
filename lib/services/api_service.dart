@@ -1,9 +1,10 @@
 // Monitro API Service — talks to the backend collector over localhost HTTPS
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
-import 'dart:convert';
-import 'dart:io';
 
 /// Client service that wraps API endpoints hosted by the local Monitro daemon collector.
 ///
@@ -42,7 +43,9 @@ class ApiService {
       '${Directory.current.path}/certs/ca.crt',
     ];
     for (final candidate in candidates) {
-      if (candidate.isNotEmpty && File(candidate).existsSync()) return candidate;
+      if (candidate.isNotEmpty && File(candidate).existsSync()) {
+        return candidate;
+      }
     }
     return null;
   }
@@ -56,8 +59,7 @@ class ApiService {
       final ca = _resolveCaCert();
       if (ca != null) {
         try {
-          _pinnedContext = SecurityContext(withTrustedRoots: false)
-            ..setTrustedCertificates(ca);
+          _pinnedContext = SecurityContext()..setTrustedCertificates(ca);
         } catch (error) {
           log('Failed to load pinned CA; falling back', error: error);
           _pinnedContext = null;
@@ -73,8 +75,8 @@ class ApiService {
       ioClient = HttpClient(context: _pinnedContext);
     } else {
       ioClient = HttpClient()
-        ..badCertificateCallback = (cert, host, port) =>
-            host == '127.0.0.1' || host == 'localhost';
+        ..badCertificateCallback =
+            (cert, host, port) => host == '127.0.0.1' || host == 'localhost';
     }
     return IOClient(ioClient);
   }
@@ -126,7 +128,8 @@ class ApiService {
   ///   pid: Unique process identifier.
   static Future<Map<String, dynamic>> killProcess(int pid) async {
     try {
-      final response = await _client.delete(Uri.parse('$_baseUrl/processes/$pid'), headers: _headers);
+      final response = await _client
+          .delete(Uri.parse('$_baseUrl/processes/$pid'), headers: _headers);
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
@@ -160,7 +163,8 @@ class ApiService {
   /// Run a GET request against the local daemon collector and deserialize the response.
   static Future<Map<String, dynamic>> _get(String path) async {
     try {
-      final response = await _client.get(Uri.parse('$_baseUrl$path'), headers: _headers);
+      final response =
+          await _client.get(Uri.parse('$_baseUrl$path'), headers: _headers);
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
@@ -171,4 +175,3 @@ class ApiService {
     }
   }
 }
-

@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
-import 'preferences_service.dart';
 
+import 'package:monitro/services/preferences_service.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 /// Service class responsible for creating and writing the collector daemon's configuration file.
 ///
@@ -15,7 +15,8 @@ class ConfigGenerator {
       final appDir = File(exeLoc).parent.parent.path;
       return p.join(appDir, 'Resources', 'certs');
     }
-    if (Platform.isWindows && p.basename(exeLoc).toLowerCase() == 'monitro.exe') {
+    if (Platform.isWindows &&
+        p.basename(exeLoc).toLowerCase() == 'monitro.exe') {
       final appDir = File(exeLoc).parent.path;
       return p.join(appDir, 'certs');
     }
@@ -37,10 +38,10 @@ class ConfigGenerator {
     if (!await configDir.exists()) {
       await configDir.create(recursive: true);
     }
-    
+
     final certDir = _getCertsDir();
-    final certPath = p.join(certDir, 'server.crt').replaceAll('\\', '/');
-    final keyPath = p.join(certDir, 'server.key').replaceAll('\\', '/');
+    final certPath = p.join(certDir, 'server.crt').replaceAll(r'\', '/');
+    final keyPath = p.join(certDir, 'server.key').replaceAll(r'\', '/');
 
     // Default configuration template containing server parameters, thresholds, and port maps
     final yaml = '''
@@ -101,4 +102,3 @@ monitored_ports:
     return configFile.path;
   }
 }
-

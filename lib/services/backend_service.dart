@@ -1,8 +1,9 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:path/path.dart' as p;
+
 import 'package:flutter/foundation.dart';
-import 'api_service.dart';
+import 'package:monitro/services/api_service.dart';
+import 'package:path/path.dart' as p;
 
 /// Control service managing the lifecycle of the local Monitro daemon collector.
 ///
@@ -19,8 +20,10 @@ class BackendService {
   /// Args:
   ///   configPath: Path to the generated YAML configuration file.
   static Future<bool> start(String configPath) async {
-    if (_process != null) return true; // Already running locally mapped by Flutter
-    
+    if (_process != null) {
+      return true; // Already running locally mapped by Flutter
+    }
+
     // Check if another backend instance is already listening
     if (await ApiService.isBackendHealthy()) {
       debugPrint('Backend is already running and healthy.');
@@ -28,8 +31,8 @@ class BackendService {
     }
 
     await _killExistingProcess();
-    
-    String exePath = _getCollectorPath();
+
+    final exePath = _getCollectorPath();
 
     if (!File(exePath).existsSync()) {
       debugPrint('Collector binary not found at $exePath');
@@ -41,7 +44,7 @@ class BackendService {
       debugPrint('Starting collector at $exePath with config $configPath');
       final logFile = File(p.join(File(configPath).parent.path, 'out.txt'));
       if (logFile.existsSync()) logFile.deleteSync();
-      
+
       _process = await Process.start(exePath, ['--config', configPath]);
       _process!.stdout.listen((data) {
         logFile.writeAsBytesSync(data, mode: FileMode.append);
@@ -61,8 +64,14 @@ class BackendService {
   static Future<void> _killExistingProcess() async {
     try {
       if (Platform.isWindows) {
-        await Process.run('powershell', ['-Command', 'Stop-Process -Name monitro_collector -Force -ErrorAction SilentlyContinue']);
-        await Process.run('powershell', ['-Command', 'Stop-Process -Name monitro_collector.exe -Force -ErrorAction SilentlyContinue']);
+        await Process.run('powershell', [
+          '-Command',
+          'Stop-Process -Name monitro_collector -Force -ErrorAction SilentlyContinue'
+        ]);
+        await Process.run('powershell', [
+          '-Command',
+          'Stop-Process -Name monitro_collector.exe -Force -ErrorAction SilentlyContinue'
+        ]);
       } else {
         await Process.run('pkill', ['-f', 'monitro_collector']);
       }
@@ -89,7 +98,8 @@ class BackendService {
   static String _getCollectorPath() {
     final exeLoc = Platform.resolvedExecutable;
     final exeDir = File(exeLoc).parent.path;
-    final bin = Platform.isWindows ? 'monitro_collector.exe' : 'monitro_collector';
+    final bin =
+        Platform.isWindows ? 'monitro_collector.exe' : 'monitro_collector';
     debugPrint('App Executable: $exeLoc');
 
     final candidates = <String>[
@@ -121,9 +131,10 @@ class BackendService {
     candidates.add(p.join(Directory.current.path, 'backend', bin));
 
     for (final candidate in candidates) {
-      if (candidate.isNotEmpty && File(candidate).existsSync()) return candidate;
+      if (candidate.isNotEmpty && File(candidate).existsSync()) {
+        return candidate;
+      }
     }
     return candidates.last; // dev fallback path (may not exist; caller handles)
   }
 }
-

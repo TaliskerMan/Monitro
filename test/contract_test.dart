@@ -50,20 +50,28 @@ void main() {
     // silent.
     final sampleSnapshot = <String, dynamic>{
       'system': {'hostname': 'h'},
-      'cpu': {'busy_pct': 1.0, 'cores': [{'busy_pct': 1.0}]},
+      'cpu': {
+        'busy_pct': 1.0,
+        'cores': [
+          {'busy_pct': 1.0}
+        ]
+      },
       'memory': {'used_pct': 2.0},
       'netstat': {'connections': []},
       'users': {'sessions': []},
       'api_calls': {'count': 0},
       'processes': {'processes': []},
-      'disk': {},
-      'network': {},
+      'disk': <String, dynamic>{},
+      'network': <String, dynamic>{},
     };
 
     test('every key the UI reads exists in the collector snapshot', () {
       for (final key in uiReadsSnapshotKeys) {
-        expect(sampleSnapshot.containsKey(key), isTrue,
-            reason: 'UI reads "$key" but the collector snapshot does not emit it');
+        expect(
+          sampleSnapshot.containsKey(key),
+          isTrue,
+          reason: 'UI reads "$key" but the collector snapshot does not emit it',
+        );
       }
     });
 

@@ -27,14 +27,14 @@ class DiskCollector {
         // Skip partition entries (sda1, sdb2, etc.) — keep major devices
         if (RegExp(r'\d$').hasMatch(name) && !name.startsWith('nvme')) continue;
         devices.add({
-          'device':      name,
-          'reads':       int.tryParse(parts[3]) ?? 0,
+          'device': name,
+          'reads': int.tryParse(parts[3]) ?? 0,
           'reads_merged': int.tryParse(parts[4]) ?? 0,
           'sectors_read': int.tryParse(parts[5]) ?? 0,
-          'read_ms':     int.tryParse(parts[6]) ?? 0,
-          'writes':      int.tryParse(parts[7]) ?? 0,
+          'read_ms': int.tryParse(parts[6]) ?? 0,
+          'writes': int.tryParse(parts[7]) ?? 0,
           'sectors_written': int.tryParse(parts[9]) ?? 0,
-          'write_ms':    int.tryParse(parts[10]) ?? 0,
+          'write_ms': int.tryParse(parts[10]) ?? 0,
         });
       }
       return {'platform': 'linux', 'devices': devices};
@@ -47,7 +47,8 @@ class DiskCollector {
   /// macOS: use iostat -d -c 1
   static Future<Map<String, dynamic>> _collectMacOS() async {
     try {
-      final result = await Process.run('iostat', ['-d', '-c', '1'], runInShell: true);
+      final result =
+          await Process.run('iostat', ['-d', '-c', '1'], runInShell: true);
       final lines = result.stdout.toString().split('\n');
       final devices = <Map<String, dynamic>>[];
       // iostat output: "          disk0"
@@ -58,7 +59,9 @@ class DiskCollector {
         final devNames = lines[0].trim().split(RegExp(r'\s+'));
         final values = lines[2].trim().split(RegExp(r'\s+'));
         // 3 values per device: KB/t, tps, MB/s
-        for (int index = 0; index < devNames.length && index * 3 + 2 < values.length; index++) {
+        for (var index = 0;
+            index < devNames.length && index * 3 + 2 < values.length;
+            index++) {
           devices.add({
             'device': devNames[index],
             'kb_per_transfer': double.tryParse(values[index * 3]) ?? 0,
@@ -77,8 +80,10 @@ class DiskCollector {
   static Future<Map<String, dynamic>> _collectWindows() async {
     try {
       final result = await Process.run(
-        'powershell', [
-          '-NonInteractive', '-Command',
+        'powershell',
+        [
+          '-NonInteractive',
+          '-Command',
           'Get-PhysicalDisk | Select-Object FriendlyName, MediaType | ConvertTo-Json',
         ],
       );

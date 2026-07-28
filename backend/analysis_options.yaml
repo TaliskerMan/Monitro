@@ -1,4 +1,4 @@
-include: package:very_good_analysis/analysis_options.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   errors:
@@ -6,7 +6,6 @@ analyzer:
     unused_element: warning
     unused_field: warning
     unused_local_variable: warning
-    deprecated_member_use_from_same_package: error
     deprecated_member_use: error
 linter:
   rules:

@@ -1,10 +1,11 @@
 import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:monitro/services/api_service.dart';
+import 'package:monitro/services/preferences_service.dart';
+import 'package:monitro/theme/app_theme.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import '../theme/app_theme.dart';
-import '../services/api_service.dart';
-import '../services/preferences_service.dart';
 
 /// Screen widget displaying top running processes on the system.
 class ProcessesScreen extends StatelessWidget {
@@ -12,19 +13,20 @@ class ProcessesScreen extends StatelessWidget {
   const ProcessesScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
-      title: 'Top Processes',
-      loader: ApiService.getProcesses,
-      builder: (data) =>
-          _ProcessTable(processes: (data['processes'] as List? ?? [])));
+        title: 'Top Processes',
+        loader: ApiService.getProcesses,
+        builder: (data) =>
+            _ProcessTable(processes: data['processes'] as List? ?? []),
+      );
 }
 
 /// Data table widget listing process statistics.
 class _ProcessTable extends StatefulWidget {
-  /// Raw list of active process maps.
-  final List processes;
-
   /// Creates a [_ProcessTable] instance.
   const _ProcessTable({required this.processes});
+
+  /// Raw list of active process maps.
+  final List processes;
 
   @override
   State<_ProcessTable> createState() => _ProcessTableState();
@@ -111,20 +113,30 @@ class _ProcessTableState extends State<_ProcessTable> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Kill Process',
-            style: TextStyle(color: AppTheme.onSurface)),
-        content: Text('Terminate $name (PID: $pid)?',
-            style: const TextStyle(color: AppTheme.onSurface)),
+        title: const Text(
+          'Kill Process',
+          style: TextStyle(color: AppTheme.onSurface),
+        ),
+        content: Text(
+          'Terminate $name (PID: $pid)?',
+          style: const TextStyle(color: AppTheme.onSurface),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
-              child: const Text('Kill',
-                  style: TextStyle(
-                      color: AppTheme.onSurface, fontWeight: FontWeight.bold))),
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
+            child: const Text(
+              'Kill',
+              style: TextStyle(
+                color: AppTheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -132,11 +144,13 @@ class _ProcessTableState extends State<_ProcessTable> {
     if (confirmed == true) {
       final res = await ApiService.killProcess(pid);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(res['error'] ?? 'Process $pid killed.'),
-          backgroundColor:
-              res['error'] == null ? AppTheme.success : AppTheme.danger,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res['error'] ?? 'Process $pid killed.'),
+            backgroundColor:
+                res['error'] == null ? AppTheme.success : AppTheme.danger,
+          ),
+        );
       }
     }
   }
@@ -149,22 +163,36 @@ class _ProcessTableState extends State<_ProcessTable> {
         sortColumnIndex: _sortColumnIndex,
         sortAscending: _sortAscending,
         headingTextStyle: const TextStyle(
-            color: AppTheme.muted, fontSize: 12, fontWeight: FontWeight.w600),
+          color: AppTheme.muted,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
         dataTextStyle: const TextStyle(color: AppTheme.onSurface, fontSize: 12),
         columns: [
           DataColumn(label: const Text('PID'), onSort: _sortData),
           DataColumn(label: const Text('NAME'), onSort: _sortData),
           DataColumn(label: const Text('USER'), onSort: _sortData),
           DataColumn(
-              label: const Text('CPU %'), onSort: _sortData, numeric: true),
+            label: const Text('CPU %'),
+            onSort: _sortData,
+            numeric: true,
+          ),
           DataColumn(
-              label: const Text('MEM %'), onSort: _sortData, numeric: true),
+            label: const Text('MEM %'),
+            onSort: _sortData,
+            numeric: true,
+          ),
           DataColumn(
-              label: const Text('RSS KB'), onSort: _sortData, numeric: true),
+            label: const Text('RSS KB'),
+            onSort: _sortData,
+            numeric: true,
+          ),
           const DataColumn(label: Text('STATE')),
           const DataColumn(label: Text('ACTION')),
         ],
-        rows: _sortedProcesses.map<DataRow>((p) => _buildProcessRow(p as Map)).toList(),
+        rows: _sortedProcesses
+            .map<DataRow>((p) => _buildProcessRow(p as Map))
+            .toList(),
       ),
     );
   }
@@ -174,29 +202,42 @@ class _ProcessTableState extends State<_ProcessTable> {
     final cpuPct = (mappedP['cpu_pct'] as num?)?.toDouble() ?? 0;
     final name = _parseName(mappedP['cmdline'] as String? ?? '');
 
-    return DataRow(cells: [
-      DataCell(Text('$pid')),
-      DataCell(Text(name, style: const TextStyle(fontWeight: FontWeight.w500))),
-      DataCell(Text('${mappedP['user'] ?? ''}')),
-      DataCell(Text(
-        cpuPct.toStringAsFixed(1),
-        style: TextStyle(
-            color: cpuPct >= 50 ? AppTheme.danger : AppTheme.onSurface,
-            fontWeight: cpuPct > 10 ? FontWeight.bold : FontWeight.normal),
-      )),
-      DataCell(Text(((mappedP['mem_pct'] as num?)?.toStringAsFixed(1)) ?? '')),
-      DataCell(Text('${mappedP['rss_kb'] ?? ''}')),
-      DataCell(Text(_mapState(mappedP['state'] as String? ?? ''),
-          style: const TextStyle(color: AppTheme.muted))),
-      DataCell(
-        IconButton(
-          icon: const Icon(Icons.delete_outline,
-              color: AppTheme.danger, size: 18),
-          tooltip: 'Kill Process',
-          onPressed: () => _killProcess(pid, name),
+    return DataRow(
+      cells: [
+        DataCell(Text('$pid')),
+        DataCell(
+            Text(name, style: const TextStyle(fontWeight: FontWeight.w500))),
+        DataCell(Text('${mappedP['user'] ?? ''}')),
+        DataCell(
+          Text(
+            cpuPct.toStringAsFixed(1),
+            style: TextStyle(
+              color: cpuPct >= 50 ? AppTheme.danger : AppTheme.onSurface,
+              fontWeight: cpuPct > 10 ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ),
-      ),
-    ]);
+        DataCell(Text((mappedP['mem_pct'] as num?)?.toStringAsFixed(1) ?? '')),
+        DataCell(Text('${mappedP['rss_kb'] ?? ''}')),
+        DataCell(
+          Text(
+            _mapState(mappedP['state'] as String? ?? ''),
+            style: const TextStyle(color: AppTheme.muted),
+          ),
+        ),
+        DataCell(
+          IconButton(
+            icon: const Icon(
+              Icons.delete_outline,
+              color: AppTheme.danger,
+              size: 18,
+            ),
+            tooltip: 'Kill Process',
+            onPressed: () => _killProcess(pid, name),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -206,18 +247,19 @@ class ConnectionsScreen extends StatelessWidget {
   const ConnectionsScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
-      title: 'Network Connections',
-      loader: ApiService.getConnections,
-      builder: (data) => _ConnectionTables(data: data));
+        title: 'Network Connections',
+        loader: ApiService.getConnections,
+        builder: (data) => _ConnectionTables(data: data),
+      );
 }
 
 /// Tab layout displaying inbound (listening) and outbound (established) connections.
 class _ConnectionTables extends StatelessWidget {
-  /// Raw connection statistics map returned from the API.
-  final Map data;
-
   /// Creates a [_ConnectionTables] instance.
   const _ConnectionTables({required this.data});
+
+  /// Raw connection statistics map returned from the API.
+  final Map data;
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +275,8 @@ class _ConnectionTables extends StatelessWidget {
           remote == '0.0.0.0:*';
     }).toList();
 
-    final outbound = conns.where((connection) => !inbound.contains(connection)).toList();
+    final outbound =
+        conns.where((connection) => !inbound.contains(connection)).toList();
 
     return DefaultTabController(
       length: 2,
@@ -255,7 +298,7 @@ class _ConnectionTables extends StatelessWidget {
                 _buildTable(outbound, isInbound: false),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -265,16 +308,18 @@ class _ConnectionTables extends StatelessWidget {
   Widget _buildTable(List connections, {required bool isInbound}) {
     if (connections.isEmpty) {
       return const Center(
-          child:
-              Text('No connections', style: TextStyle(color: AppTheme.muted)));
+        child: Text('No connections', style: TextStyle(color: AppTheme.muted)),
+      );
     }
     return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
           headingTextStyle: const TextStyle(
-              color: AppTheme.muted, fontSize: 12, fontWeight: FontWeight.w600),
+            color: AppTheme.muted,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
           dataTextStyle:
               const TextStyle(color: AppTheme.onSurface, fontSize: 12),
           columns: [
@@ -289,7 +334,7 @@ class _ConnectionTables extends StatelessWidget {
               const DataColumn(label: Text('REMOTE DOMAIN')),
               const DataColumn(label: Text('REMOTE IP')),
               const DataColumn(label: Text('STATE')),
-            ]
+            ],
           ],
           rows: connections.map<DataRow>((connection) {
             final process = connection['process']?.toString().isNotEmpty == true
@@ -300,31 +345,64 @@ class _ConnectionTables extends StatelessWidget {
             final state = connection['state']?.toString() ?? '';
 
             if (isInbound) {
-              return DataRow(cells: [
-                DataCell(Text(process.toString(),
-                    style: const TextStyle(
-                        color: AppTheme.accent, fontWeight: FontWeight.w500))),
-                DataCell(Text(connection['local']?.toString() ?? '')),
-                DataCell(Text(remote)),
-                DataCell(Text(domain,
-                    style: const TextStyle(color: AppTheme.muted))),
-                DataCell(Text(state)),
-              ]);
+              return DataRow(
+                cells: [
+                  DataCell(
+                    Text(
+                      process.toString(),
+                      style: const TextStyle(
+                        color: AppTheme.accent,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  DataCell(Text(connection['local']?.toString() ?? '')),
+                  DataCell(Text(remote)),
+                  DataCell(
+                    Text(
+                      domain,
+                      style: const TextStyle(color: AppTheme.muted),
+                    ),
+                  ),
+                  DataCell(Text(state)),
+                ],
+              );
             } else {
-              return DataRow(cells: [
-                DataCell(Text(process.toString(),
-                    style: const TextStyle(
-                        color: AppTheme.accent, fontWeight: FontWeight.w500))),
-                DataCell(Text(domain.isNotEmpty ? domain : '-',
-                    style: const TextStyle(color: AppTheme.onSurface))),
-                DataCell(Text(remote,
-                    style: const TextStyle(color: AppTheme.muted))),
-                DataCell(Text(state,
-                    style: TextStyle(
+              return DataRow(
+                cells: [
+                  DataCell(
+                    Text(
+                      process.toString(),
+                      style: const TextStyle(
+                        color: AppTheme.accent,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      domain.isNotEmpty ? domain : '-',
+                      style: const TextStyle(color: AppTheme.onSurface),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      remote,
+                      style: const TextStyle(color: AppTheme.muted),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      state,
+                      style: TextStyle(
                         color: state.toUpperCase() == 'ESTABLISHED'
                             ? AppTheme.success
-                            : AppTheme.muted))),
-              ]);
+                            : AppTheme.muted,
+                      ),
+                    ),
+                  ),
+                ],
+              );
             }
           }).toList(),
         ),
@@ -339,26 +417,29 @@ class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
-      title: 'User Sessions',
-      loader: ApiService.getUsers,
-      builder: (data) =>
-          _UserList(sessions: (data['sessions'] as List? ?? [])));
+        title: 'User Sessions',
+        loader: ApiService.getUsers,
+        builder: (data) => _UserList(sessions: data['sessions'] as List? ?? []),
+      );
 }
 
 /// List builder presenting user session telemetry details.
 class _UserList extends StatelessWidget {
-  /// Raw user sessions list map.
-  final List sessions;
-
   /// Creates a [_UserList] instance.
   const _UserList({required this.sessions});
+
+  /// Raw user sessions list map.
+  final List sessions;
 
   @override
   Widget build(BuildContext context) {
     if (sessions.isEmpty) {
       return const Center(
-          child: Text('No active sessions',
-              style: TextStyle(color: AppTheme.muted)));
+        child: Text(
+          'No active sessions',
+          style: TextStyle(color: AppTheme.muted),
+        ),
+      );
     }
     return ListView.builder(
       itemCount: sessions.length,
@@ -366,14 +447,21 @@ class _UserList extends StatelessWidget {
         final session = sessions[index] as Map;
         return ListTile(
           leading: const Icon(Icons.person, color: AppTheme.accent),
-          title: Text('${session['username']}',
-              style: const TextStyle(
-                  color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
+          title: Text(
+            '${session['username']}',
+            style: const TextStyle(
+              color: AppTheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           subtitle: Text(
-              '${session['tty']} · from ${session['from_host']} · idle ${session['idle']}',
-              style: const TextStyle(color: AppTheme.muted, fontSize: 13)),
-          trailing: Text(session['current_cmd'] as String? ?? '',
-              style: const TextStyle(color: AppTheme.muted, fontSize: 11)),
+            '${session['tty']} · from ${session['from_host']} · idle ${session['idle']}',
+            style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+          ),
+          trailing: Text(
+            session['current_cmd'] as String? ?? '',
+            style: const TextStyle(color: AppTheme.muted, fontSize: 11),
+          ),
         );
       },
     );
@@ -386,26 +474,30 @@ class ApiMonitorScreen extends StatelessWidget {
   const ApiMonitorScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
-      title: 'API Call Monitor',
-      loader: ApiService.getApiCalls,
-      builder: (data) =>
-          _ApiCallerList(callers: (data['api_callers'] as List? ?? [])));
+        title: 'API Call Monitor',
+        loader: ApiService.getApiCalls,
+        builder: (data) =>
+            _ApiCallerList(callers: data['api_callers'] as List? ?? []),
+      );
 }
 
 /// List builder presenting API connection statistics counts.
 class _ApiCallerList extends StatelessWidget {
-  /// Raw list representing API caller statistics maps.
-  final List callers;
-
   /// Creates an [_ApiCallerList] instance.
   const _ApiCallerList({required this.callers});
+
+  /// Raw list representing API caller statistics maps.
+  final List callers;
 
   @override
   Widget build(BuildContext context) {
     if (callers.isEmpty) {
       return const Center(
-          child: Text('No outbound HTTP connections detected',
-              style: TextStyle(color: AppTheme.muted)));
+        child: Text(
+          'No outbound HTTP connections detected',
+          style: TextStyle(color: AppTheme.muted),
+        ),
+      );
     }
     return ListView.builder(
       itemCount: callers.length,
@@ -414,14 +506,21 @@ class _ApiCallerList extends StatelessWidget {
         final count = (caller['connections'] as int?) ?? 0;
         return ListTile(
           leading: const Icon(Icons.api, color: AppTheme.accent),
-          title: Text('${caller['process']}',
-              style: const TextStyle(
-                  color: AppTheme.onSurface, fontWeight: FontWeight.w600)),
+          title: Text(
+            '${caller['process']}',
+            style: const TextStyle(
+              color: AppTheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           trailing: Chip(
-            label: Text('$count connections',
-                style: TextStyle(
-                    color: count > 10 ? AppTheme.danger : AppTheme.accent,
-                    fontSize: 12)),
+            label: Text(
+              '$count connections',
+              style: TextStyle(
+                color: count > 10 ? AppTheme.danger : AppTheme.accent,
+                fontSize: 12,
+              ),
+            ),
             backgroundColor: AppTheme.surfaceAlt,
           ),
         );
@@ -436,29 +535,36 @@ class AlertsScreen extends StatelessWidget {
   const AlertsScreen({super.key});
   @override
   Widget build(BuildContext context) => _DataScreen(
-      title: 'Alert Events',
-      loader: ApiService.getAlerts,
-      builder: (data) => _AlertList(alerts: (data['alerts'] as List? ?? [])));
+        title: 'Alert Events',
+        loader: ApiService.getAlerts,
+        builder: (data) => _AlertList(alerts: data['alerts'] as List? ?? []),
+      );
 }
 
 /// List builder presenting warning alerts details.
 class _AlertList extends StatelessWidget {
-  /// Raw alerts list.
-  final List alerts;
-
   /// Creates an [_AlertList] instance.
   const _AlertList({required this.alerts});
+
+  /// Raw alerts list.
+  final List alerts;
 
   @override
   Widget build(BuildContext context) {
     if (alerts.isEmpty) {
       return const Center(
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.check_circle_outline, color: AppTheme.success, size: 48),
-        SizedBox(height: 12),
-        Text('No alerts — all systems nominal',
-            style: TextStyle(color: AppTheme.muted)),
-      ]));
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle_outline, color: AppTheme.success, size: 48),
+            SizedBox(height: 12),
+            Text(
+              'No alerts — all systems nominal',
+              style: TextStyle(color: AppTheme.muted),
+            ),
+          ],
+        ),
+      );
     }
     return ListView.builder(
       itemCount: alerts.length,
@@ -470,13 +576,21 @@ class _AlertList extends StatelessWidget {
             severity == 'critical' ? Icons.warning : Icons.info_outline,
             color: severity == 'critical' ? AppTheme.danger : AppTheme.warning,
           ),
-          title: Text('${alert['metric_name']}',
-              style: const TextStyle(
-                  color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
-          subtitle: Text('${alert['message']}',
-              style: const TextStyle(color: AppTheme.muted)),
-          trailing: Text('${alert['triggered_at']}',
-              style: const TextStyle(color: AppTheme.muted, fontSize: 12)),
+          title: Text(
+            '${alert['metric_name']}',
+            style: const TextStyle(
+              color: AppTheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          subtitle: Text(
+            '${alert['message']}',
+            style: const TextStyle(color: AppTheme.muted),
+          ),
+          trailing: Text(
+            '${alert['triggered_at']}',
+            style: const TextStyle(color: AppTheme.muted, fontSize: 12),
+          ),
         );
       },
     );
@@ -513,7 +627,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         });
       }
     } catch (error) {
-      log('Exception caught', error: error);}
+      log('Exception caught', error: error);
+    }
   }
 
   /// Request network interfaces available from the current metrics.
@@ -541,116 +656,144 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(padding: const EdgeInsets.all(20), children: [
-        const _SectionHeader('Dashboard Configuration'),
-        const SizedBox(height: 16),
-        const Text('Monitored Network Interface',
-            style: TextStyle(color: AppTheme.muted, fontSize: 13)),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: _interfaces.contains(settings.selectedNetworkInterface)
-              ? settings.selectedNetworkInterface
-              : 'All',
-          dropdownColor: AppTheme.surfaceAlt,
-          style: const TextStyle(color: AppTheme.onSurface),
-          items: _interfaces
-              .map((iface) => DropdownMenuItem(value: iface, child: Text(iface)))
-              .toList(),
-          onChanged: (val) {
-            if (val != null) notifier.setNetworkInterface(val);
-          },
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const _SectionHeader('Dashboard Configuration'),
+          const SizedBox(height: 16),
+          const Text(
+            'Monitored Network Interface',
+            style: TextStyle(color: AppTheme.muted, fontSize: 13),
           ),
-        ),
-        const SizedBox(height: 24),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Show Per-Core CPU Stats',
-              style: TextStyle(color: AppTheme.onSurface, fontSize: 15)),
-          subtitle: const Text(
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            initialValue:
+                _interfaces.contains(settings.selectedNetworkInterface)
+                    ? settings.selectedNetworkInterface
+                    : 'All',
+            dropdownColor: AppTheme.surfaceAlt,
+            style: const TextStyle(color: AppTheme.onSurface),
+            items: _interfaces
+                .map((iface) =>
+                    DropdownMenuItem(value: iface, child: Text(iface)))
+                .toList(),
+            onChanged: (val) {
+              if (val != null) notifier.setNetworkInterface(val);
+            },
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text(
+              'Show Per-Core CPU Stats',
+              style: TextStyle(color: AppTheme.onSurface, fontSize: 15),
+            ),
+            subtitle: const Text(
               'Display individual CPU cores instead of an aggregate gauge',
-              style: TextStyle(color: AppTheme.muted, fontSize: 12)),
-          activeThumbColor: AppTheme.accent,
-          value: settings.showPerCoreCpu,
-          onChanged: notifier.togglePerCoreCpu,
-        ),
-        const Divider(height: 48),
-        const _SectionHeader('Backend Connection'),
-        const _SettingTile(label: 'API Host', value: '127.0.0.1'),
-        const _SettingTile(label: 'API Port', value: '8443'),
-        const _SettingTile(label: 'SSL', value: 'Enabled (local CA)'),
-        const Divider(height: 32),
-        const _SectionHeader('Data Collection'),
-        const Text('Refresh Interval (Seconds)',
-            style: TextStyle(color: AppTheme.muted, fontSize: 13)),
-        Slider(
-          value: settings.refreshIntervalSeconds.toDouble(),
-          min: 1,
-          max: 60,
-          divisions: 59,
-          activeColor: AppTheme.accent,
-          label: '${settings.refreshIntervalSeconds} s',
-          onChanged: (val) => notifier.setRefreshInterval(val.toInt()),
-        ),
-        const Divider(height: 32),
-        const _SectionHeader('About'),
-        _SettingTile(label: 'Version', value: _version),
-        const _SettingTile(label: 'License', value: 'MIT (Chuck Talk)'),
-        const _SettingTile(
-            label: 'Repository', value: 'github.com/TaliskerMan/Monitro'),
-        const SizedBox(height: 16),
-        const Text(
+              style: TextStyle(color: AppTheme.muted, fontSize: 12),
+            ),
+            activeThumbColor: AppTheme.accent,
+            value: settings.showPerCoreCpu,
+            onChanged: notifier.togglePerCoreCpu,
+          ),
+          const Divider(height: 48),
+          const _SectionHeader('Backend Connection'),
+          const _SettingTile(label: 'API Host', value: '127.0.0.1'),
+          const _SettingTile(label: 'API Port', value: '8443'),
+          const _SettingTile(label: 'SSL', value: 'Enabled (local CA)'),
+          const Divider(height: 32),
+          const _SectionHeader('Data Collection'),
+          const Text(
+            'Refresh Interval (Seconds)',
+            style: TextStyle(color: AppTheme.muted, fontSize: 13),
+          ),
+          Slider(
+            value: settings.refreshIntervalSeconds.toDouble(),
+            min: 1,
+            max: 60,
+            divisions: 59,
+            activeColor: AppTheme.accent,
+            label: '${settings.refreshIntervalSeconds} s',
+            onChanged: (val) => notifier.setRefreshInterval(val.toInt()),
+          ),
+          const Divider(height: 32),
+          const _SectionHeader('About'),
+          _SettingTile(label: 'Version', value: _version),
+          const _SettingTile(label: 'License', value: 'MIT (Chuck Talk)'),
+          const _SettingTile(
+            label: 'Repository',
+            value: 'github.com/TaliskerMan/Monitro',
+          ),
+          const SizedBox(height: 16),
+          const Text(
             'Note: Core connection settings must be edited in config/monitro.yaml and require a collector restart.',
-            style: TextStyle(color: AppTheme.muted, fontSize: 12)),
-      ]),
+            style: TextStyle(color: AppTheme.muted, fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 }
 
 /// Tiny title header class utilized inside settings panels.
 class _SectionHeader extends StatelessWidget {
-  final String text;
   const _SectionHeader(this.text);
+  final String text;
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text,
-            style: const TextStyle(
-                color: AppTheme.accent,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                letterSpacing: 0.8)),
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: AppTheme.accent,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            letterSpacing: 0.8,
+          ),
+        ),
       );
 }
 
 /// A setting tile element displaying a label and static value.
 class _SettingTile extends StatelessWidget {
-  final String label, value;
   const _SettingTile({required this.label, required this.value});
+  final String label;
+  final String value;
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(children: [
-          SizedBox(
+        child: Row(
+          children: [
+            SizedBox(
               width: 160,
-              child: Text(label,
-                  style: const TextStyle(color: AppTheme.muted, fontSize: 13))),
-          Text(value,
-              style: const TextStyle(color: AppTheme.onSurface, fontSize: 13)),
-        ]),
+              child: Text(
+                label,
+                style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+              ),
+            ),
+            Text(
+              value,
+              style: const TextStyle(color: AppTheme.onSurface, fontSize: 13),
+            ),
+          ],
+        ),
       );
 }
 
 /// Generic data-loading screen wrapper.
 class _DataScreen extends StatefulWidget {
+  const _DataScreen({
+    required this.title,
+    required this.loader,
+    required this.builder,
+  });
   final String title;
   final Future<Map<String, dynamic>> Function() loader;
   final Widget Function(Map<String, dynamic>) builder;
-
-  const _DataScreen(
-      {required this.title, required this.loader, required this.builder});
 
   @override
   State<_DataScreen> createState() => _DataScreenState();
@@ -687,9 +830,12 @@ class _DataScreenState extends State<_DataScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppTheme.surface,
-        appBar: AppBar(title: Text(widget.title), actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load)
-        ]),
+        appBar: AppBar(
+          title: Text(widget.title),
+          actions: [
+            IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+          ],
+        ),
         body: _loading
             ? const Center(child: CircularProgressIndicator())
             : _data == null
