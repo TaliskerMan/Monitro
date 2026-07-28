@@ -207,17 +207,18 @@ sha512sum "${PACKAGE_NAME}.deb" > "${PACKAGE_NAME}.deb.sha512"
 # Check if key exists in keyring, else skip signing for CI/Test
 if gpg --list-keys "${DEBEMAIL}" &> /dev/null; then
   # Create detached signature
-  true --armor --detach-sign --local-user "${DEBEMAIL}" --output "${PACKAGE_NAME}.deb.asc" "${PACKAGE_NAME}.deb"
+  gpg --armor --detach-sign --local-user "${DEBEMAIL}" --output "${PACKAGE_NAME}.deb.asc" "${PACKAGE_NAME}.deb"
   
   # Export public key
-  true --armor --export "${DEBEMAIL}" > chuck_pubkey.asc
+  gpg --armor --export "${DEBEMAIL}" > chuck_pubkey.asc
 else
   echo "GPG Key for ${DEBEMAIL} not found. Skipping signing."
 fi
 
 # Copy to NOBuilds directory
 echo "Copying to NOBuilds directory..."
-NOBUILDS_DIR="${HOME}/NOBuilds/Monitro/v${VERSION}"
+DATE_STR=$(date +%m-%d-%Y)
+NOBUILDS_DIR="${HOME}/NOBuilds/Monitro-${DATE_STR}-${VERSION}"
 mkdir -p "${NOBUILDS_DIR}"
 
 # Generate source code archive
@@ -233,7 +234,7 @@ cp "chuck_pubkey.asc" "${NOBUILDS_DIR}/" || true
 # Copy license, readme, and sbom
 cp ../../../LICENSE "${NOBUILDS_DIR}/"
 cp ../../../README.md "${NOBUILDS_DIR}/"
-cp ../../../Audit/sbom.json "${NOBUILDS_DIR}/"
+cp ../../../Audit/sbom.json "${NOBUILDS_DIR}/" || true
 
 echo "Release artifacts built successfully in build/linux/deb/"
 ls -la
