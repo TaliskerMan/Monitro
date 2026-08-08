@@ -42,6 +42,33 @@ dart pub get
 dart compile exe bin/monitro_collector.dart -o monitro_collector
 cd ..
 
+echo "==> Generating SBOM via Syft..."
+SYFT_BIN="syft"
+if ! command -v syft &> /dev/null; then
+    if [ -f "${HOME}/.local/bin/syft" ]; then
+        SYFT_BIN="${HOME}/.local/bin/syft"
+    elif [ -f "./syft" ]; then
+        SYFT_BIN="./syft"
+    fi
+fi
+if command -v "${SYFT_BIN}" &> /dev/null; then
+    mkdir -p Audit
+    "${SYFT_BIN}" dir:. \
+        --exclude ./venv \
+        --exclude ./android \
+        --exclude ./ios \
+        --exclude ./macos \
+        --exclude ./windows \
+        --exclude ./build \
+        --exclude ./packaging_output \
+        --exclude ./dist \
+        --exclude ./plan \
+        --exclude ./.dart_tool \
+        -o cyclonedx-json > Audit/SBOM-Linux.json
+    cp Audit/SBOM-Linux.json Audit/SBOM-Linux
+    cp Audit/SBOM-Linux.json Audit/sbom.json
+fi
+
 # Prepare DEB structure
 mkdir -p "${BUILD_DIR}/DEBIAN"
 mkdir -p "${BUILD_DIR}/usr/bin"
@@ -234,6 +261,8 @@ cp "chuck_pubkey.asc" "${NOBUILDS_DIR}/" || true
 # Copy license, readme, and sbom
 cp ../../../LICENSE "${NOBUILDS_DIR}/"
 cp ../../../README.md "${NOBUILDS_DIR}/"
+cp ../../../Audit/SBOM-Linux.json "${NOBUILDS_DIR}/" || true
+cp ../../../Audit/SBOM-Linux "${NOBUILDS_DIR}/" || true
 cp ../../../Audit/sbom.json "${NOBUILDS_DIR}/" || true
 
 echo "Release artifacts built successfully in build/linux/deb/"
