@@ -49,39 +49,13 @@ Since the DMG cannot require OS-level installations dynamically:
 
 ---
 
-## The Windows Strategy (Executable Installer `.exe`)
-
-Follow the standard application bundle conventions utilizing InnoSetup.
-
-### Windows Process Sequence
-
-1. **Compilation**:
-   - `flutter build windows --release` for the native Windows User Interface.
-   - `dart compile exe bin/monitro_collector.dart` for the background data collection daemon target to Windows architecture.
-2. **Image Packaging (`.exe`)**:
-   - Wrap the built assets utilizing `InnoSetup` via `monitro.iss`.
-   - Recursively copy the `/build/windows/x64/runner/Release/*` frontend assets.
-   - Copy `monitro_collector.exe` into `{app}/backend`.
-   - Copy SSL certificates into `{app}/certs`.
-
-### Windows Lifecycle Flow (Handling MariaDB)
-
-The lifecycle mirrors the macOS strategy completely.
-
-1. Application is launched from the Start Menu (`monitro.exe`).
-2. Flutter determines if local `SharedPreferences` configuration is present.
-3. If absent, user is presented with the Setup UI wizard to input MariaDB credentials.
-4. Dynamic settings are generated and `BackendService` auto-starts the `{app}/backend/monitro_collector.exe` process.
-
----
-
 ## Version Management (Auto-Increment)
 
 To cleanly distinguish releases and trigger updates automatically, Monitro employs an auto-incrementing build system baked directly into the OS-native packaging scripts.
 
 ### Process
 
-1. Before any `flutter build` is invoked, the respective compilation script (`package_macos.sh`, `package_linux.sh`, `package_windows.ps1`) executes a native shell script (`increment_build.sh` or `increment_build.ps1`).
+1. Before any `flutter build` is invoked, the respective compilation script (`package_macos.sh`, `package_linux.sh`) executes a native shell script (`increment_build.sh`).
 2. The native script parses `pubspec.yaml`, locks onto the `version:` key (e.g., `1.0.0+4`), increments the integer build number, and overwrites the file (e.g., `1.0.0+5`).
 3. Using native Bash/PowerShell bypasses the Dart VM entirely, preventing sandbox interference or Xcode License Agreement blocks on headless CI/CD systems during version bumps.
 4. The packaging scripts then dynamically read the new `VERSION` variable straight from the file using `grep` or `Select-String` to correctly append the version to the final installer output (e.g., `Monitro_1.0.0+5_macOS.dmg`).

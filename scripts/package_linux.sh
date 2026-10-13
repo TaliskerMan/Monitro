@@ -58,7 +58,6 @@ if command -v "${SYFT_BIN}" &> /dev/null; then
         --exclude ./android \
         --exclude ./ios \
         --exclude ./macos \
-        --exclude ./windows \
         --exclude ./build \
         --exclude ./packaging_output \
         --exclude ./dist \

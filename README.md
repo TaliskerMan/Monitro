@@ -8,7 +8,7 @@
 
 | Layer | Technology |
 |---|---|
-| UI | Flutter (macOS · Linux · Windows desktop) |
+| UI | Flutter (macOS · Linux desktop) |
 | Backend Collector | Dart native daemon |
 | Storage | MariaDB (local, versioned schema) |
 | Transport | HTTPS — 4096-bit locally-signed RSA SSL |
@@ -59,10 +59,6 @@ Monitro is fully compatible with macOS and built to comply with the strict **Mac
 ```bash
 sudo apt install mariadb-server flutter
 ```
-
-### Windows
-
-Download MariaDB installer from <https://mariadb.org/download/>
 
 ## 🚀 Installation & Setup Guide
 
@@ -184,7 +180,7 @@ If the Monitro Dashboard is empty or showing errors, check these common issues:
 Monitro/
 ├── lib/                    # Flutter UI source
 ├── backend/                # Dart collector daemon
-│   ├── collectors/         # Platform-aware metric parsers (macOS / Linux / Windows)
+│   ├── collectors/         # Platform-aware metric parsers (macOS / Linux)
 │   ├── api/                # Local HTTPS REST routes
 │   └── storage/            # MariaDB ingestion service
 ├── db/                     # SQL migration scripts
@@ -198,4 +194,4 @@ Monitro/
 This project is licensed under the [MIT License](./LICENSE).
 
 © 2026 Chuck Talk <chuck@nordheim.online>.
-Free for Linux workstations. Official compiled binaries for macOS and Windows are available for purchase, supporting the ongoing development of the project.
+Free for Linux workstations. Official compiled binaries for macOS are available for purchase, supporting the ongoing development of the project.
