@@ -8,7 +8,7 @@ import 'package:path/path.dart' as p;
 /// Control service managing the lifecycle of the local Monitro daemon collector.
 ///
 /// Starts, monitors, and stops the `monitro_collector` subprocess, piping its stdout/stderr
-/// logs to local files, and handles windows/unix process cleanup signals.
+/// logs to local files, and handles process cleanup signals.
 class BackendService {
   static Process? _process;
 
@@ -63,18 +63,7 @@ class BackendService {
   /// Clean up existing collector processes on the system to avoid address bind errors.
   static Future<void> _killExistingProcess() async {
     try {
-      if (Platform.isWindows) {
-        await Process.run('powershell', [
-          '-Command',
-          'Stop-Process -Name monitro_collector -Force -ErrorAction SilentlyContinue'
-        ]);
-        await Process.run('powershell', [
-          '-Command',
-          'Stop-Process -Name monitro_collector.exe -Force -ErrorAction SilentlyContinue'
-        ]);
-      } else {
-        await Process.run('pkill', ['-f', 'monitro_collector']);
-      }
+      await Process.run('pkill', ['-f', 'monitro_collector']);
       debugPrint('Cleaned up any existing backend collector processes.');
     } catch (error) {
       log('Exception caught', error: error);
@@ -98,8 +87,7 @@ class BackendService {
   static String _getCollectorPath() {
     final exeLoc = Platform.resolvedExecutable;
     final exeDir = File(exeLoc).parent.path;
-    final bin =
-        Platform.isWindows ? 'monitro_collector.exe' : 'monitro_collector';
+    const bin = 'monitro_collector';
     debugPrint('App Executable: $exeLoc');
 
     final candidates = <String>[
@@ -111,9 +99,6 @@ class BackendService {
     if (Platform.isMacOS && exeLoc.contains('.app/Contents/MacOS/')) {
       final appDir = File(exeLoc).parent.parent.path;
       candidates.add(p.join(appDir, 'MacOS', bin));
-    }
-    if (Platform.isWindows) {
-      candidates.add(p.join(exeDir, 'backend', bin));
     }
     if (Platform.isLinux) {
       // Common installed layouts for a Flutter Linux .deb.

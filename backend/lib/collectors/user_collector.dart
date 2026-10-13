@@ -2,14 +2,10 @@
 import 'dart:developer';
 import 'dart:io';
 
-/// Collector for querying and parsing logged-in user sessions.
-///
-/// Discovers active terminals, login timestamps, host IP domains, and current process commands
-/// on POSIX machines (via `w`) and Windows (via `query user`).
+/// Collector for querying and parsing logged-in user sessions on POSIX machines (via `w`).
 class UserCollector {
   /// Gathers lists of active interactive user sessions based on the host OS.
   static Future<Map<String, dynamic>> collect() async {
-    if (Platform.isWindows) return _collectWindows();
     return _collectPosix();
   }
 
@@ -36,33 +32,6 @@ class UserCollector {
         'platform': Platform.operatingSystem,
         'sessions': sessions,
         'count': sessions.length,
-      };
-    } catch (error) {
-      log('Exception caught', error: error);
-      return {'error': error.toString()};
-    }
-  }
-
-  static Future<Map<String, dynamic>> _collectWindows() async {
-    try {
-      final result = await Process.run(
-        'query',
-        ['user'],
-        runInShell: true,
-      );
-      // quser output is space-delimited, skip header
-      final lines = result.stdout.toString().split('\n').skip(1);
-      final sessions = <Map<String, dynamic>>[];
-      for (final line in lines) {
-        if (line.trim().isEmpty) continue;
-        final parts = line.trim().split(RegExp(r'\s{2,}'));
-        if (parts.isEmpty) continue;
-        sessions.add({'raw': line.trim()});
-      }
-      return {
-        'platform': 'windows',
-        'sessions': sessions,
-        'count': sessions.length
       };
     } catch (error) {
       log('Exception caught', error: error);

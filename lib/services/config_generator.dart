@@ -15,11 +15,6 @@ class ConfigGenerator {
       final appDir = File(exeLoc).parent.parent.path;
       return p.join(appDir, 'Resources', 'certs');
     }
-    if (Platform.isWindows &&
-        p.basename(exeLoc).toLowerCase() == 'monitro.exe') {
-      final appDir = File(exeLoc).parent.path;
-      return p.join(appDir, 'certs');
-    }
     return p.join(Directory.current.path, 'certs');
   }
 
